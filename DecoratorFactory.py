@@ -10,15 +10,24 @@ import pandas as pandas
 from copy import deepcopy
 from random import randrange
 from pandas.util.testing import assert_frame_equal
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--verbose", help="increase output verbosity",
+                    action="store_true")
+args = parser.parse_args()
 #NOTE: need to make sure that the os library calls work on linux and windows as well as mac
 
 class DecoratorFactory(object):
-	def __init__(self, size):
+	def __init__(self, size, frequency, verbose=False):
 		self._size = size
+		self._frequency = frequency
+		self._verbose = verbose
 	
 	def decorator(self, f):
-		def wrapper(*args, **kwargs):			
-			#print "starting decorator"
+		def wrapper(*args, **kwargs):
+			if self._verbose:
+				print "starting decorator"
 			path = os.path.dirname(__file__) + "/Data/"
 			h = hashlib.md5(f.__name__).hexdigest()
 			for arg in args:
@@ -39,7 +48,7 @@ class DecoratorFactory(object):
 					
 					retval = pkl.load(cachefile)
 					#some % of the time, check to make sure calculated value matches the pkl file value
-					if randrange(1)==2000:
+					if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self.frequency)==1:
 						retval_test = f(*args, **kwargs)
 						print type(retval)
 						if self.__compare(retval, retval_test) == False:
@@ -81,7 +90,7 @@ class DecoratorFactory(object):
 				#read from cache and log time
 				start_read = time.time()
 				cachefile = open(cachefilename, "rb")
-				retval = pkl.load(cachefile)
+				test_retval = pkl.load(cachefile)
 				read_time = time.time() - start_read
 				#if the cache time is slower than the calculate time, create a file telling us not to use cache in future and delete cache file
 				if read_time > calc_time:

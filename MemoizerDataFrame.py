@@ -1,5 +1,14 @@
-from QSTK.qstkutil import DataAccess.py
+import hashlib
 
 class MemoizerDataFrame:
-	def __init__(self, symbols, start_date, end_date):
-		
+	def __init__(self, dataframe):
+		self.dataframe = dataframe.copy()
+		symbols = list(self.dataframe.columns.values)
+		symbols_string = " , ".join(symbols)
+		dataframe_info = symbols_string+str(self.dataframe)
+	#	print dataframe_info
+		self.h = hashlib.md5(dataframe_info).hexdigest()
+	def get_dataframe(self):
+		return self.dataframe.copy()
+	def get_hash(self):
+		return self.h	
