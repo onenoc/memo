@@ -35,10 +35,17 @@ class DecoratorFactory(object):
 				h += "+" + self.__hash_from_argument(kwarg).hexdigest()
 			#get cache filename based on function name and arguments
 			cachefilename = path + h + '.pkl'
+			if len(cachefilename) >= 250:
+				h = self.__hash_from_argument(h).hexdigest()
+				
+				cachefilename = path + h + '.pkl'
 			#get based on same, but with "NO"
 			h_no = h + "no"
 			nocachefilename = path + h_no + '.pkl'
-			readfile = False
+			if len(cachefilename) >= 250:	
+				h = self.__hash_from_argument(h).hexdigest()
+				h_no = h + "no"
+				nocachefilename = path + h_no + '.pkl'
 			if os.path.isfile(cachefilename):
 				try:
 					#if we find the cached file, read from it and return the data
@@ -54,7 +61,6 @@ class DecoratorFactory(object):
 						if self.__compare(retval, retval_test) == False:
 							print "pkl value and calculated return value don't match"	
 							retval = retval_test
-					readfile = True
 					cachefile.close()
 				except IOError:
 					print "IOError"
