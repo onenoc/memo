@@ -14,3 +14,4 @@ Then, above functions that you want to avoid recomputing on future runs, you dec
 @factory.decorator<br>
 def my_slow_function(arguments):<br>
   slow code here<br>
+  
