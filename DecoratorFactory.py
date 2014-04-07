@@ -10,13 +10,7 @@ import pandas as pandas
 from copy import deepcopy
 from random import randrange
 from pandas.util.testing import assert_frame_equal
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--verbose", help="increase output verbosity",
-                    action="store_true")
-args = parser.parse_args()
-#NOTE: need to make sure that the os library calls work on linux and windows as well as mac
+import itertools 
 
 class DecoratorFactory(object):
 	def __init__(self, size, frequency, verbose=False):
@@ -30,8 +24,13 @@ class DecoratorFactory(object):
 				print "starting decorator"
 			path = os.path.dirname(__file__) + "/Data/"
 			h = hashlib.md5(f.__name__).hexdigest()
-			for arg in args:
-				h += "+" + self.__hash_from_argument(arg).hexdigest()
+			for i in range(len(args)):
+				if args[i].__class__.__name__ == "MemoizerDataFrame":
+					h += args[i].get_hash()
+					args[i] = args[i].get_hash()
+				else:
+					h += "+" + self.__hash_from_argument(args[i]).hexdigest()
+				
 			for kwarg in kwargs:
 				h += "+" + self.__hash_from_argument(kwarg).hexdigest()
 			#get cache filename based on function name and arguments
@@ -43,7 +42,8 @@ class DecoratorFactory(object):
 			if os.path.isfile(cachefilename):
 				try:
 					#if we find the cached file, read from it and return the data
-					#print "file already exists, reading from cache"
+					if self._verbose:
+						print "file already exists, reading from cache"
 					cachefile = open(cachefilename, "rb")
 					
 					retval = pkl.load(cachefile)
@@ -71,14 +71,17 @@ class DecoratorFactory(object):
 				return retval
 			else:
 				#if the file exists telling us not to cache, we calculate
-				#print "file not found"
+				if self._verbose:
+					print "file not found"
 				if os.path.isfile(nocachefilename):
-					print "have the no cache filename"
+					if self._verbose:
+						print "have the no cache filename"
 					#open and close this file so that it is marked as opened for last accessed (need for cache eviction)
 					nocachefile = open(nocachefilename, "rb")
 					nocachefile.close()
 					return f(*args, **kwargs)
-				#print "creating pkl file"
+				if self._verbose:
+					print "creating pkl file"
 				cachefile = open(cachefilename, "wb")
 				#calculate return value and log time
 				start_calc = time.time()
@@ -94,11 +97,13 @@ class DecoratorFactory(object):
 				read_time = time.time() - start_read
 				#if the cache time is slower than the calculate time, create a file telling us not to use cache in future and delete cache file
 				if read_time > calc_time:
-					print "too slow, not caching"
+					if self._verbose:
+						print "too slow, not caching"
 					nocachefile = open(nocachefilename, "wb")
 					nocachefile.close()
 					os.remove(cachefilename)
-				#print "about to return, just cached"
+				if self._verbose:
+					print "about to return, just cached"
 				#check whether the current directory size is bigger than we want
 				if self.__get_directory_size() > self._size:
 					#deal with cache eviction
@@ -107,7 +112,8 @@ class DecoratorFactory(object):
 		return wrapper
 	def __get_directory_size(self):
 		#get the size of the data directory and filenames
-		#print "managing directory size"
+		if self._verbose:
+			print "managing directory size"
 		path = os.path.dirname(__file__) + "/Data/"
 		dirs = os.listdir(path)
 		dir_size = []
@@ -120,7 +126,8 @@ class DecoratorFactory(object):
 		
 	def __manage_directory_size(self):
 		#get the size of the data directory and filenames
-		#print "managing directory size"
+		if self._verbose:
+			print "managing directory size"
 		path = os.path.dirname(__file__) + "/Data/"
 		dirs = os.listdir(path)
 		dir_size = []
@@ -129,8 +136,9 @@ class DecoratorFactory(object):
 			dir_size.append(os.path.getsize(path + file))
 			files.append(file)
 		total_dir_size = sum(dir_size)
-		#print "initial directory size is"
-		#print total_dir_size
+		if self._verbose:
+			print "initial directory size is"
+			print total_dir_size
 		#if so, delete from last accessed file onwards
 		#currently, we will set it so that if the size of the folder is more than that set by the __init__.py file, we reduce it to that size
 
@@ -141,7 +149,6 @@ class DecoratorFactory(object):
 			files_to_delete = []
 			i = 0
 			while total_dir_size > self._size and i < len(files):
-				print "while loop"
 				total_dir_size -= os.path.getsize(path + files[i])
 				print total_dir_size
 				files_to_delete.append(files[i])
@@ -190,8 +197,4 @@ class DecoratorFactory(object):
 			arg_string = str(len(argument))
 		arg_string += str(argument)
 		return hashlib.md5(arg_string)
-
-
-
-		
 

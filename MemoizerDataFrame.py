@@ -6,7 +6,6 @@ class MemoizerDataFrame:
 		symbols = list(self.dataframe.columns.values)
 		symbols_string = " , ".join(symbols)
 		dataframe_info = symbols_string+str(self.dataframe)
-	#	print dataframe_info
 		self.h = hashlib.md5(dataframe_info).hexdigest()
 	def get_dataframe(self):
 		return self.dataframe.copy()
