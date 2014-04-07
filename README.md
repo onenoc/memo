@@ -13,5 +13,5 @@ from DecoratorFactoryInstance import factory
 Then, above functions that you want to avoid recomputing on future runs, you decorate using @factory.decorator.  For instance:<br>
 @factory.decorator<br>
 def my_slow_function(arguments):<br>
-  slow code here<br>
+&nbsp;&nbsp;&nbsp;slow code here<br>
   
