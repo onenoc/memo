@@ -7,4 +7,6 @@ This is a memoizer class that you can use to decorate your functions so that the
 
 To use, first import the package to the files with relevant functions using the following format:<br>
 import sys<br>
-sys.path.append('file_path')
+sys.path.append('file_path')<br>
+from DecoratorFactoryInstance import factory
+
