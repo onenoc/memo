@@ -25,6 +25,9 @@ class DecoratorFactory(object):
 			path = os.path.dirname(__file__) + "/Data/"
 			h = hashlib.md5(f.__name__).hexdigest()
 			for i in range(len(args)):
+				print "printing argument\n\n\n"
+				print args[i]
+				print self.__hash_from_argument(args[i]).hexdigest()
 				if args[i].__class__.__name__ == "MemoizerDataFrame":
 					h += args[i].get_hash()
 					args[i] = args[i].get_hash()
@@ -36,9 +39,12 @@ class DecoratorFactory(object):
 			#get cache filename based on function name and arguments
 			cachefilename = path + h + '.pkl'
 			if len(cachefilename) >= 250:
-				h = self.__hash_from_argument(h).hexdigest()
-				
+				print h
+				h = hashlib.md5(h).hexdigest()
+				print " "
+				print h
 				cachefilename = path + h + '.pkl'
+				print cachefilename
 			#get based on same, but with "NO"
 			h_no = h + "no"
 			nocachefilename = path + h_no + '.pkl'
