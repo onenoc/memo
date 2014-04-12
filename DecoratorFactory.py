@@ -166,7 +166,6 @@ class DecoratorFactory(object):
 		if type(value1) != type(value2):
 			return False
 		if type(value1) is numpy.ndarray:
-			print "comparing arrays"
 			h1 = hashlib.md5(value1.data).hexdigest()
 			h2 = hashlib.md5(value2.data).hexdigest()
 			return (h1==h2)
