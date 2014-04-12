@@ -25,9 +25,6 @@ class DecoratorFactory(object):
 			path = os.path.dirname(__file__) + "/Data/"
 			h = hashlib.md5(f.__name__).hexdigest()
 			for i in range(len(args)):
-				print "printing argument\n\n\n"
-				print args[i]
-				print self.__hash_from_argument(args[i]).hexdigest()
 				if args[i].__class__.__name__ == "MemoizerDataFrame":
 					h += args[i].get_hash()
 					args[i] = args[i].get_hash()
@@ -39,10 +36,7 @@ class DecoratorFactory(object):
 			#get cache filename based on function name and arguments
 			cachefilename = path + h + '.pkl'
 			if len(cachefilename) >= 250:
-				print h
 				h = hashlib.md5(h).hexdigest()
-				print " "
-				print h
 				cachefilename = path + h + '.pkl'
 				print cachefilename
 			#get based on same, but with "NO"
@@ -61,7 +55,7 @@ class DecoratorFactory(object):
 					
 					retval = pkl.load(cachefile)
 					#some % of the time, check to make sure calculated value matches the pkl file value
-					if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self.frequency)==1:
+					if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
 						retval_test = f(*args, **kwargs)
 						print type(retval)
 						if self.__compare(retval, retval_test) == False:
@@ -172,7 +166,11 @@ class DecoratorFactory(object):
 		if type(value1) != type(value2):
 			return False
 		if type(value1) is numpy.ndarray:
-			return (value1==value2).all()
+			print "comparing arrays"
+			h1 = hashlib.md5(value1.data).hexdigest()
+			h2 = hashlib.md5(value2.data).hexdigest()
+			return (h1==h2)
+			#return (value1==value2).all()
 		elif type(value1) is list or type(value1) is tuple:
 			if len(value1) != len(value2):
 				return False

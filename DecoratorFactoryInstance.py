@@ -1,2 +1,2 @@
 from DecoratorFactory import DecoratorFactory
-factory = DecoratorFactory(209715200, 0, True)
+factory = DecoratorFactory(209715200, 1, True)
