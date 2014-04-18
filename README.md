@@ -24,21 +24,21 @@ import sys<br>
 sys.path.append('/home/jobryan/memo')<br>
 from DecoratorFactoryInstance import factory<br>
 def sleepy():<br>
-    time.sleep(5)<br>
-    return<br>
+&nbsp;&nbsp;&nbsp;&nbsp;time.sleep(5)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return<br>
 
 @factory.decorator<br>
 def sleepy2():<br>
-    time.sleep(5)<br>
-    return 5<br>
+&nbsp;&nbsp;&nbsp;&nbsp;time.sleep(5)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return 5<br>
 
 def fib_slow(n):<br>
-    if n < 2:<br>
-        return n<br>
-    return fib_slow(n - 2) + fib_slow(n - 1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if n < 2:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return fib_slow(n - 2) + fib_slow(n - 1)<br>
 
 @factory.decorator<br>
 def fib(n):<br>
-    if n < 2:<br>
-        return n<br>
-    return fib(n - 2) + fib(n - 1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if n < 2:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return fib(n - 2) + fib(n - 1)<br>
