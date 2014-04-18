@@ -18,27 +18,27 @@ def my_slow_function(arguments):<br>
 Also, in the DecoratorFactoryInstance, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), in this line:<br>
 factory=DecoratorFactory(bytes, frequency, verbosity)
 
-Examples (Thanks Jon O'Bryan):
-import time
-import sys
-sys.path.append('/home/jobryan/memo')
-from DecoratorFactoryInstance import factory
-def sleepy():
-    time.sleep(5)
-    return
+Examples (Thanks Jon O'Bryan):<br>
+import time<br>
+import sys<br>
+sys.path.append('/home/jobryan/memo')<br>
+from DecoratorFactoryInstance import factory<br>
+def sleepy():<br>
+    time.sleep(5)<br>
+    return<br>
 
-@factory.decorator
-def sleepy2():
-    time.sleep(5)
-    return 5
+@factory.decorator<br>
+def sleepy2():<br>
+    time.sleep(5)<br>
+    return 5<br>
 
-def fib_slow(n):
-    if n < 2:
-        return n
-    return fib_slow(n - 2) + fib_slow(n - 1)
+def fib_slow(n):<br>
+    if n < 2:<br>
+        return n<br>
+    return fib_slow(n - 2) + fib_slow(n - 1)<br>
 
-@factory.decorator
-def fib(n):
-    if n < 2:
-        return n
-    return fib(n - 2) + fib(n - 1)
+@factory.decorator<br>
+def fib(n):<br>
+    if n < 2:<br>
+        return n<br>
+    return fib(n - 2) + fib(n - 1)<br>
