@@ -35,7 +35,7 @@ def sleepy2():<br>
 def fib_slow(n):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;if n < 2:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return fib_slow(n - 2) + fib_slow(n - 1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return fib_slow(n - 2) + fib_slow(n - 1)<br>
 
 @factory.decorator<br>
 def fib(n):<br>
