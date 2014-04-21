@@ -11,6 +11,7 @@ from copy import deepcopy
 from random import randrange
 from pandas.util.testing import assert_frame_equal
 import itertools 
+import inspect
 
 class DecoratorFactory(object):
 	def __init__(self, size, frequency, verbose=False):
@@ -57,7 +58,6 @@ class DecoratorFactory(object):
 					#some % of the time, check to make sure calculated value matches the pkl file value
 					if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
 						retval_test = f(*args, **kwargs)
-						print type(retval)
 						if self.__compare(retval, retval_test) == False:
 							print "pkl value and calculated return value don't match"	
 							retval = retval_test
@@ -169,7 +169,6 @@ class DecoratorFactory(object):
 			h1 = hashlib.md5(value1.data).hexdigest()
 			h2 = hashlib.md5(value2.data).hexdigest()
 			return (h1==h2)
-			#return (value1==value2).all()
 		elif type(value1) is list or type(value1) is tuple:
 			if len(value1) != len(value2):
 				return False
@@ -191,8 +190,11 @@ class DecoratorFactory(object):
 			try:
 				equality = (value1 == value2)
 				return equality
-			except:	
-				return str(value1) == str(value2)
+			except:
+				try:
+					return str(value1) == str(value2)
+				except:
+					return false
 	
 	def __hash_from_argument(self, argument):
 		arg_string = ""	
