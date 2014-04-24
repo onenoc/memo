@@ -62,13 +62,15 @@ class DecoratorFactory(object):
 					if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
 						retval_test = f(*args, **kwargs)
 						if self.__compare(retval, retval_test) == False:
-							print "pkl value and calculated return value don't match"	
+							print "Alert!!!  pkl value and calculated return value don't match"	
 							retval = retval_test
 					cachefile.close()
+					#check to make sure that function definition hasn't changed, and if it has, recalculate
 					if inspect.getsource(f) != memoizedObject.definition:	
 						os.remove(cachefilename)
 						retval = f(*args, **kwargs)
-						print "ALERT!!! Definition changed!!!!"
+						if self._verbose:
+							print "ALERT!!! Definition changed!!!!"
 				except IOError:
 					print "IOError"
 					if os.path.isfile(cachefilename):
@@ -109,8 +111,16 @@ class DecoratorFactory(object):
 				cachefile = open(cachefilename, "rb")
 				test_retval = pkl.load(cachefile)
 				read_time = time.time() - start_read
-				#if the cache time is slower than the calculate time, create a file telling us not to use cache in future and delete cache file
-				if read_time > calc_time:
+				#detect use of randomization
+				source = inspect.getsource(f)
+				random = 0
+				if "rand" in source:
+					random = 1
+					print "random"	
+				#if the cache time is slower than the calculate time, 
+				#or there is use of randomization
+				#create a file telling us not to use cache in future and delete cache file
+				if read_time > calc_time or random == 1:
 					if self._verbose:
 						print "too slow, not caching"
 					nocachefile = open(nocachefilename, "wb")
