@@ -23,6 +23,7 @@ class DecoratorFactory(object):
 		def wrapper(*args, **kwargs):
 			if self._verbose:
 				print "starting decorator"
+			print inspect.getsource(f)
 			path = os.path.dirname(__file__) + "/Data/"
 			h = hashlib.md5(f.__name__).hexdigest()
 			for i in range(len(args)):
