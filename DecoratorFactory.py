@@ -7,9 +7,11 @@ import copy
 import collections
 import numpy as numpy
 import pandas as pandas
+from MemoizedObject import MemoizedObject
 from copy import deepcopy
 from random import randrange
 from pandas.util.testing import assert_frame_equal
+
 import itertools 
 import inspect
 
@@ -23,7 +25,6 @@ class DecoratorFactory(object):
 		def wrapper(*args, **kwargs):
 			if self._verbose:
 				print "starting decorator"
-			print inspect.getsource(f)
 			path = os.path.dirname(__file__) + "/Data/"
 			h = hashlib.md5(f.__name__).hexdigest()
 			for i in range(len(args)):
@@ -55,7 +56,8 @@ class DecoratorFactory(object):
 						print "file already exists, reading from cache"
 					cachefile = open(cachefilename, "rb")
 					
-					retval = pkl.load(cachefile)
+					memoizedObject = pkl.load(cachefile)
+					retval = memoizedObject.cache_object
 					#some % of the time, check to make sure calculated value matches the pkl file value
 					if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
 						retval_test = f(*args, **kwargs)
@@ -63,6 +65,10 @@ class DecoratorFactory(object):
 							print "pkl value and calculated return value don't match"	
 							retval = retval_test
 					cachefile.close()
+					if inspect.getsource(f) != memoizedObject.definition:	
+						os.remove(cachefilename)
+						retval = f(*args, **kwargs)
+						print "ALERT!!! Definition changed!!!!"
 				except IOError:
 					print "IOError"
 					if os.path.isfile(cachefilename):
@@ -93,8 +99,9 @@ class DecoratorFactory(object):
 				#calculate return value and log time
 				start_calc = time.time()
 				retval = f(*args, **kwargs)
+				memoizedObject = MemoizedObject(inspect.getsource(f), retval)
 				calc_time = time.time() - start_calc
-				pkl.dump(retval, cachefile, -1)
+				pkl.dump(memoizedObject, cachefile, -1)
 				os.chmod(cachefilename, 0666)
 				cachefile.close()
 				#read from cache and log time
