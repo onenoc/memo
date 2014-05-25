@@ -1,7 +1,7 @@
 memo
 ====
 
-NOTE: this library is still in alpha mode
+NOTE: this library is in beta mode
 
 This is a memoizer class that you can use to decorate your functions so that they get cached to a file and run faster in future runs.
 
