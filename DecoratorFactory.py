@@ -16,13 +16,16 @@ import itertools
 import inspect
 
 class DecoratorFactory(object):
-	def __init__(self, size, frequency, verbose=False):
+	def __init__(self, size, frequency, verbose=False, on=True):
 		self._size = size
 		self._frequency = frequency
 		self._verbose = verbose
+		self._on = on
 	
 	def decorator(self, f):
 		def wrapper(*args, **kwargs):
+			if self._on == False:
+				return f(*args, **kwargs)
 			if self._verbose:
 				print "starting decorator"
 			path = os.path.dirname(__file__) + "/Data/"
