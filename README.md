@@ -5,10 +5,12 @@ NOTE: this library is still in alpha mode
 
 This is a memoizer class that you can use to decorate your functions so that they get cached to a file and run faster in future runs.
 
-To use, first import the package to the files with relevant functions using the following format:<br>
-import sys<br>
-sys.path.append('file_path')<br>
-from DecoratorFactoryInstance import factory
+To use, from the cloned folder, run<br>
+python setup.py install<br>
+This will give you the folder where it is installed.  Go there and create a subdirectory Data/<br>
+
+Then, in any file where you want to use it, add the following at the top:<br>
+from memoizer.DecoratorFactoryInstance import factory<br>
 
 Then, above functions that you want to avoid recomputing on future runs, you decorate using @factory.decorator.  For instance:<br>
 @factory.decorator<br>
