@@ -17,8 +17,8 @@ Then, above functions that you want to avoid recomputing on future runs, you dec
 def my_slow_function(arguments):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;slow code here<br>
   
-Also, in the DecoratorFactoryInstance, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), in this line:<br>
-factory=DecoratorFactory(bytes, frequency, verbosity)
+Also, in the DecoratorFactoryInstance, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library in this line:<br>
+factory=DecoratorFactory(bytes, frequency, verbosity=True, on=True)
 
 <b>Examples (Thanks Jon O'Bryan):</b><br>
 import time<br>
