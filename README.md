@@ -18,7 +18,11 @@ def my_slow_function(arguments):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;slow code here<br>
   
 Also, in the DecoratorFactoryInstance, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library in this line:<br>
-factory=DecoratorFactory(bytes, frequency, verbosity=True, on=True)
+factory=DecoratorFactory(bytes, frequency, verbosity=True, on=True)<br>
+
+Some notes:<br>
+-this package detects changes to the function definition, and in that case will delete and not return cached values
+-it also detects any case of rand in the function definition, and will not cache in that case.  However, there are other ways to inject randomness, so the user should be somewhat careful
 
 <b>Examples (Thanks Jon O'Bryan):</b><br>
 import time<br>
