@@ -7,7 +7,6 @@ This is a memoizer class that you can use to decorate your functions so that the
 
 To use, from the cloned folder, run<br>
 python setup.py install<br>
-This will give you the folder where it is installed.  Go there and create a subdirectory Data/<br>
 
 Then, in any file where you want to use it, add the following at the top:<br>
 from memoizer.DecoratorFactoryInstance import factory<br>
