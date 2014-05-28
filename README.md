@@ -26,8 +26,7 @@ Some notes:<br>
 <b>Examples (Thanks Jon O'Bryan):</b><br>
 import time<br>
 import sys<br>
-sys.path.append('/home/jobryan/memo')<br>
-from DecoratorFactoryInstance import factory<br>
+from memoizer.DecoratorFactoryInstance import factory<br>
 def sleepy():<br>
 &nbsp;&nbsp;&nbsp;&nbsp;time.sleep(5)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;return<br>
