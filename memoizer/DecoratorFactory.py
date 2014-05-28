@@ -29,6 +29,11 @@ class DecoratorFactory(object):
 			if self._verbose:
 				print "starting decorator"
 			path = os.path.dirname(__file__) + "/Data/"
+			try:
+        			os.makedirs(path)
+    			except OSError:
+        			if not os.path.isdir(path):
+            				raise
 			h = hashlib.md5(f.__name__).hexdigest()
 			for i in range(len(args)):
 				if args[i].__class__.__name__ == "MemoizerDataFrame":
