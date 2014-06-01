@@ -118,6 +118,7 @@ class DecoratorFactory(object):
 				start_read = time.time()
 				cachefile = open(cachefilename, "rb")
 				test_retval = pkl.load(cachefile)
+                cachefile.close()
 				read_time = time.time() - start_read
 				#detect use of randomization
 				source = inspect.getsource(f)
