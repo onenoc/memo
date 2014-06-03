@@ -46,3 +46,5 @@ def fib(n):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;if n < 2:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n<br>
 &nbsp;&nbsp;&nbsp;&nbsp;return fib(n - 2) + fib(n - 1)<br>
+
+Developed by Alexander Moreno under the supervision of Professor Tucker Balch, Georgia Tech
