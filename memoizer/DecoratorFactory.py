@@ -28,7 +28,7 @@ class DecoratorFactory(object):
                 return f(*args, **kwargs)
             if self._verbose:
                 print "starting decorator"
-            path = os.environ['MEMODATA']
+            path = os.environ['MEMODATA'] + "/"
             h = hashlib.md5(f.__name__).hexdigest()
             for i in range(len(args)):
                 if args[i].__class__.__name__ == "MemoizerDataFrame":
@@ -142,7 +142,7 @@ class DecoratorFactory(object):
         #get the size of the data directory and filenames
         if self._verbose:
             print "managing directory size"
-        path = os.environ['MEMODATA']
+        path = os.environ['MEMODATA'] + "/"
         dirs = os.listdir(path)
         dir_size = []
         files = []
@@ -156,7 +156,7 @@ class DecoratorFactory(object):
         #get the size of the data directory and filenames
         if self._verbose:
             print "managing directory size"
-        path = os.environ['MEMODATA']
+        path = os.environ['MEMODATA'] + "/"
         dirs = os.listdir(path)
         dir_size = []
         files = []
