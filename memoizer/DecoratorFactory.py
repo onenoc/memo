@@ -142,7 +142,7 @@ class DecoratorFactory(object):
         #get the size of the data directory and filenames
         if self._verbose:
             print "managing directory size"
-        path = os.path.dirname(__file__) + "/Data/"
+        path = os.environ['MEMODATA']
         dirs = os.listdir(path)
         dir_size = []
         files = []
@@ -156,7 +156,7 @@ class DecoratorFactory(object):
         #get the size of the data directory and filenames
         if self._verbose:
             print "managing directory size"
-        path = os.path.dirname(__file__) + "/Data/"
+        path = os.environ['MEMODATA']
         dirs = os.listdir(path)
         dir_size = []
         files = []
