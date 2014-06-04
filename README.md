@@ -8,7 +8,7 @@ This is a memoizer class that you can use to decorate your functions so that the
 To use, from the cloned folder, run<br>
 python setup.py install<br>
 
-Next, setup an environment variable.  You can do this by creating a config.sh file anywhere with the following<br>
+Next, add the folder MEMOData and setup an environment variable.  You can do this by creating a config.sh file anywhere with the following<br>
 export MEMODATA=$HOME/MEMOData<br>
 and then running source config.sh in the terminal where you'll run your python code<br>
 
