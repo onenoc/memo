@@ -115,6 +115,8 @@ class DecoratorFactory(object):
                 calc_time = time.time() - start_calc
                 pkl.dump(memoizedObject, tmp_file, -1)
                 tmp_file.close()
+                print tmp_filename
+                print cachefilename
                 os.rename(tmp_filename, cachefilename)
                 os.chmod(cachefilename, 0666)
                 #rename to a tempfile, read from it, close it, and rename back
