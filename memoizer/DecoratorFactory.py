@@ -117,7 +117,7 @@ class DecoratorFactory(object):
                 pkl.dump(memoizedObject, tmp_file, -1)
                 print "closing file %s" % (tmp_filename)
                 tmp_file.close()
-                print "file closed %s" % (cachefilename)
+                print "file closed %s" % (tmp_filename)
                 print tmp_filename
                 print cachefilename
                 print "checking if it's a file"
@@ -131,6 +131,7 @@ class DecoratorFactory(object):
                 start_read = time.time()
                 tmp_file = open(tmp_filename, "rb")
                 test_retval = pkl.load(tmp_file)
+                os.fsync(tmp_file)
                 tmp_file.close()
                 read_time = time.time() - start_read
                 os.rename(tmp_filename, cachefilename)
