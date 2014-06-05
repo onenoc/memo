@@ -41,6 +41,7 @@ class DecoratorFactory(object):
                 h += "+" + self.__hash_from_argument(kwarg).hexdigest()
             #get cache filename based on function name and arguments
             cachefilename = path + h + '.pkl'
+            tmp_filename = path + str(time.time()) + ".pkl"
             if len(cachefilename) >= 250:
                 h = hashlib.md5(h).hexdigest()
                 cachefilename = path + h + '.pkl'
@@ -52,58 +53,55 @@ class DecoratorFactory(object):
                 h = self.__hash_from_argument(h).hexdigest()
                 h_no = h + "no"
                 nocachefilename = path + h_no + '.pkl'
-            if os.path.isfile(cachefilename):
-                try:
-                    #if we find the cached file, read from it and return the data
-                    if self._verbose:
-                        print "file already exists, reading from cache"
-                    cachefile = open(cachefilename, "rb")
+            try:
+                #rename to a tempfile, read from it, close it, and rename back
+                os.rename(cachefilename, tmp_filename)
+                if self._verbose:
+                    print "file already exists, reading from cache"
+                tmp_file = open(tmp_filename, "rb")
+                memoizedObject = pkl.load(tmp_file)
+                tmp_file.close()
+                os.rename(tmp_filename, cachefilenames)
 
-                    memoizedObject = pkl.load(cachefile)
-                    retval = memoizedObject.cache_object
-                    #some % of the time, check to make sure calculated value matches the pkl file value
-                    if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
+                #handle return value
+                retval = memoizedObject.cache_object
+                #some % of the time, check to make sure calculated value matches the pkl file value
+                if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
                         retval_test = f(*args, **kwargs)
                         if self.__compare(retval, retval_test) == False:
                             print "Alert!!!  pkl value and calculated return value don't match"
                             retval = retval_test
-                    cachefile.close()
-                    #check to make sure that function definition hasn't changed, and if it has, recalculate
-                    if inspect.getsource(f) != memoizedObject.definition:
-                        os.remove(cachefilename)
-                        retval = f(*args, **kwargs)
-                        if self._verbose:
-                            print "ALERT!!! Definition changed!!!!"
-                except IOError:
-                    print "IOError"
-                    if os.path.isfile(cachefilename):
-                        os.remove(cachefilename)
-                        print "removed corrupt cache file"
+                #check to make sure that function definition hasn't changed, and if it has, recalculate
+                if inspect.getsource(f) != memoizedObject.definition:
+                    os.remove(cachefilename)
                     retval = f(*args, **kwargs)
-                except EOFError:
-                    print "EOFError"
-                    if os.path.isfile(cachefilename):
-                        os.remove(cachefilename)
-                        print "removed corrupt cache file"
-                    retval = f(*args, **kwargs)
+                    if self._verbose:
+                        print "ALERT!!! Definition changed!!!!"
+            except EOFError:
+                print "EOFError"
+                try:
+                    os.remove(cachefilename)
+                    print "removed corrupt cache file"
                 except:
-                    retval = f(*args, **kwargs)
-                return retval
-            else:
-                #if the file exists telling us not to cache, we calculate
+                    pass
+                retval = f(*args, **kwargs)
+            except IOError:
                 if self._verbose:
                     print "file not found"
-                if os.path.isfile(nocachefilename):
-                    if self._verbose:
-                        print "have the no cache filename"
+                try:
+                    nocachefile_tmp_filename = path + time.time()
+                    os.rename(nocachefilename, nocachefile_tmp_filename)
+                    print "have the no cache filename"
                     #open and close this file so that it is marked as opened for
                     # last accessed (need for cache eviction)
-                    nocachefile = open(nocachefilename, "rb")
-                    nocachefile.close()
+                    nocachefile_tmp_file = open(noachefile_tmp_filename, "rb")
+                    nocachefile_tmp_file.close()
+                    os.rename(nocachefile_tmp_filename, nocachefilename)
                     return f(*args, **kwargs)
+                except IOError:
+                    pass
                 if self._verbose:
                     print "creating pkl file"
-                tmp_filename = str(time.time()) + ".pkl"
                 tmp_file = open(tmp_filename, "wb")
                 #calculate return value and log time
                 start_calc = time.time()
@@ -111,15 +109,19 @@ class DecoratorFactory(object):
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
                 pkl.dump(memoizedObject, tmp_file, -1)
-                os.rename(tmp_filename, cachefilename)
                 tmp_file.close()
+                os.rename(tmp_filename, cachefilename)
                 os.chmod(cachefilename, 0666)
+                #rename to a tempfile, read from it, close it, and rename back
+                os.rename(cachefilename, tmp_filename)
                 #read from cache and log time
                 start_read = time.time()
-                cachefile = open(cachefilename, "rb")
-                test_retval = pkl.load(cachefile)
-                cachefile.close()
+                tmp_file = open(tmp_filename, "rb")
+                test_retval = pkl.load(tmp_file)
+                tmp_file.close()
                 read_time = time.time() - start_read
+                os.rename(tmp_filename, cachefilename)
+
                 #detect use of randomization
                 source = inspect.getsource(f)
                 random = 0
@@ -132,8 +134,10 @@ class DecoratorFactory(object):
                 if read_time > calc_time or random == 1:
                     if self._verbose:
                         print "too slow, not caching"
-                    nocachefile = open(nocachefilename, "wb")
-                    nocachefile.close()
+                    tmp_create_nocachefilename = path + time.time()
+                    tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
+                    tmp_create_nocachefile.close()
+                    os.rename(tmp_create_nocachefilename, nocachefilename)
                     os.remove(cachefilename)
                 if self._verbose:
                     print "about to return, just cached"
@@ -143,6 +147,7 @@ class DecoratorFactory(object):
                     self.__manage_directory_size()
                 return retval
         return wrapper
+
     def __get_directory_size(self):
         #get the size of the data directory and filenames
         if self._verbose:
