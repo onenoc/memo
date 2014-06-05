@@ -61,7 +61,7 @@ class DecoratorFactory(object):
                 tmp_file = open(tmp_filename, "rb")
                 memoizedObject = pkl.load(tmp_file)
                 tmp_file.close()
-                os.rename(tmp_filename, cachefilenames)
+                os.rename(tmp_filename, cachefilename)
 
                 #handle return value
                 retval = memoizedObject.cache_object
