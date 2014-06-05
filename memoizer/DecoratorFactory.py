@@ -89,7 +89,7 @@ class DecoratorFactory(object):
                 if self._verbose:
                     print "file not found"
                 try:
-                    nocachefile_tmp_filename = path + time.time()
+                    nocachefile_tmp_filename = path + str(time.time())
                     os.rename(nocachefilename, nocachefile_tmp_filename)
                     print "have the no cache filename"
                     #open and close this file so that it is marked as opened for
@@ -134,7 +134,7 @@ class DecoratorFactory(object):
                 if read_time > calc_time or random == 1:
                     if self._verbose:
                         print "too slow, not caching"
-                    tmp_create_nocachefilename = path + time.time()
+                    tmp_create_nocachefilename = path + str(time.time())
                     tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
                     tmp_create_nocachefile.close()
                     os.rename(tmp_create_nocachefilename, nocachefilename)
