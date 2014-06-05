@@ -86,6 +86,8 @@ class DecoratorFactory(object):
                         os.remove(cachefilename)
                         print "removed corrupt cache file"
                     retval = f(*args, **kwargs)
+                except:
+                    retval = f(*args, **kwargs)
                 return retval
             else:
                 #if the file exists telling us not to cache, we calculate
@@ -94,21 +96,25 @@ class DecoratorFactory(object):
                 if os.path.isfile(nocachefilename):
                     if self._verbose:
                         print "have the no cache filename"
-                    #open and close this file so that it is marked as opened for last accessed (need for cache eviction)
+                    #open and close this file so that it is marked as opened for
+                    # last accessed (need for cache eviction)
                     nocachefile = open(nocachefilename, "rb")
                     nocachefile.close()
                     return f(*args, **kwargs)
                 if self._verbose:
                     print "creating pkl file"
-                cachefile = open(cachefilename, "wb")
+                tmp_filename = str(time.time()) + ".pkl"
+                tmp_file = open(tmp_filename, "wb")
                 #calculate return value and log time
                 start_calc = time.time()
                 retval = f(*args, **kwargs)
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
-                pkl.dump(memoizedObject, cachefile, -1)
+                pkl.dump(memoizedObject, tmp_filename, -1)
+                os.rename(tmp_filename, cachefilename)
+                tmp_file.close()
+                os.remove(tmp_filename)
                 os.chmod(cachefilename, 0666)
-                cachefile.close()
                 #read from cache and log time
                 start_read = time.time()
                 cachefile = open(cachefilename, "rb")
