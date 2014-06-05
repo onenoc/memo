@@ -110,7 +110,7 @@ class DecoratorFactory(object):
                 retval = f(*args, **kwargs)
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
-                pkl.dump(memoizedObject, tmp_filename, -1)
+                pkl.dump(memoizedObject, tmp_file, -1)
                 os.rename(tmp_filename, cachefilename)
                 tmp_file.close()
                 os.remove(tmp_filename)
