@@ -26,6 +26,7 @@ class DecoratorFactory(object):
         def wrapper(*args, **kwargs):
             if self._on == False:
                 return f(*args, **kwargs)
+            print "starting decorator for %s" % (f.__name__)
             if self._verbose:
                 print "starting decorator"
             path = os.environ['MEMODATA'] + "/"
@@ -56,12 +57,14 @@ class DecoratorFactory(object):
             try:
                 #rename to a tempfile, read from it, close it, and rename back
                 os.rename(cachefilename, tmp_filename)
+                print "getting data for %s" % (f.__name__)
                 if self._verbose:
                     print "file already exists, reading from cache"
                 tmp_file = open(tmp_filename, "rb")
                 memoizedObject = pkl.load(tmp_file)
                 tmp_file.close()
                 os.rename(tmp_filename, cachefilename)
+
 
                 #handle return value
                 retval = memoizedObject.cache_object
@@ -105,7 +108,9 @@ class DecoratorFactory(object):
                 tmp_file = open(tmp_filename, "wb")
                 #calculate return value and log time
                 start_calc = time.time()
+                print "setting retval for %s" % f.__name__
                 retval = f(*args, **kwargs)
+                print "retval set"
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
                 pkl.dump(memoizedObject, tmp_file, -1)
@@ -145,7 +150,7 @@ class DecoratorFactory(object):
                 if self.__get_directory_size() > self._size:
                     #deal with cache eviction
                     self.__manage_directory_size()
-                return retval
+            return retval
         return wrapper
 
     def __get_directory_size(self):
