@@ -27,6 +27,7 @@ class DecoratorFactory(object):
             if self._on == False:
                 return f(*args, **kwargs)
             print "starting decorator for %s" % (f.__name__)
+            print os.getpid()
             if self._verbose:
                 print "starting decorator"
             path = os.environ['MEMODATA'] + "/"
@@ -114,9 +115,9 @@ class DecoratorFactory(object):
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
                 pkl.dump(memoizedObject, tmp_file, -1)
-                print "closing file"
+                print "closing file %s" % (tmp_filename)
                 tmp_file.close()
-                print "file closed"
+                print "file closed %s" % (cachefilename)
                 print tmp_filename
                 print cachefilename
                 os.rename(tmp_filename, cachefilename)
