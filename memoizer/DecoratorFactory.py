@@ -120,6 +120,9 @@ class DecoratorFactory(object):
                 print "file closed %s" % (cachefilename)
                 print tmp_filename
                 print cachefilename
+                print "checking if it's a file"
+                print os.path.isfile(tmp_filename)
+                print os.path.isfile(cachefilename)
                 os.rename(tmp_filename, cachefilename)
                 os.chmod(cachefilename, 0666)
                 #rename to a tempfile, read from it, close it, and rename back
