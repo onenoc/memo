@@ -26,8 +26,6 @@ class DecoratorFactory(object):
         def wrapper(*args, **kwargs):
             if self._on == False:
                 return f(*args, **kwargs)
-            print "starting decorator for %s" % (f.__name__)
-            print os.getpid()
             if self._verbose:
                 print "starting decorator"
             path = os.environ['MEMODATA'] + "/"
@@ -58,7 +56,6 @@ class DecoratorFactory(object):
             try:
                 #rename to a tempfile, read from it, close it, and rename back
                 os.rename(cachefilename, tmp_filename)
-                print "getting data for %s" % (f.__name__)
                 if self._verbose:
                     print "file already exists, reading from cache"
                 tmp_file = open(tmp_filename, "rb")
@@ -106,24 +103,14 @@ class DecoratorFactory(object):
                     pass
                 if self._verbose:
                     print "creating pkl file"
-                tmp_file = open(tmp_filename, "wb")
                 #calculate return value and log time
                 start_calc = time.time()
-                print "setting retval for %s" % f.__name__
                 retval = f(*args, **kwargs)
-                print "retval set"
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
+                tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
-                print "this file has name %s" % (tmp_file.name)
-                print "closing file %s" % (tmp_filename)
                 tmp_file.close()
-                print "file closed %s" % (tmp_filename)
-                print tmp_filename
-                print cachefilename
-                print "checking if it's a file"
-                print os.path.isfile(tmp_filename)
-                print os.path.isfile(cachefilename)
                 os.rename(tmp_filename, cachefilename)
                 os.chmod(cachefilename, 0666)
                 #rename to a tempfile, read from it, close it, and rename back
