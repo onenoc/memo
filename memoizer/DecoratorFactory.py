@@ -114,7 +114,9 @@ class DecoratorFactory(object):
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
                 pkl.dump(memoizedObject, tmp_file, -1)
+                print "closing file"
                 tmp_file.close()
+                print "file closed"
                 print tmp_filename
                 print cachefilename
                 os.rename(tmp_filename, cachefilename)
