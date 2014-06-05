@@ -85,7 +85,7 @@ class DecoratorFactory(object):
                 except:
                     pass
                 retval = f(*args, **kwargs)
-            except IOError:
+            except (OSError, IOError) as e:
                 if self._verbose:
                     print "file not found"
                 try:
