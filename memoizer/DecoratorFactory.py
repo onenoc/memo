@@ -98,7 +98,7 @@ class DecoratorFactory(object):
                     nocachefile_tmp_file.close()
                     os.rename(nocachefile_tmp_filename, nocachefilename)
                     return f(*args, **kwargs)
-                except IOError:
+                except (OSError, IOError) as e:
                     pass
                 if self._verbose:
                     print "creating pkl file"
