@@ -115,6 +115,7 @@ class DecoratorFactory(object):
                 memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 calc_time = time.time() - start_calc
                 pkl.dump(memoizedObject, tmp_file, -1)
+                print "this file has name %s" % (tmp_file.name)
                 print "closing file %s" % (tmp_filename)
                 tmp_file.close()
                 print "file closed %s" % (tmp_filename)
