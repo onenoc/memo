@@ -113,7 +113,6 @@ class DecoratorFactory(object):
                 pkl.dump(memoizedObject, tmp_file, -1)
                 os.rename(tmp_filename, cachefilename)
                 tmp_file.close()
-                os.remove(tmp_filename)
                 os.chmod(cachefilename, 0666)
                 #read from cache and log time
                 start_read = time.time()
