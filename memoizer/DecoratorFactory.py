@@ -17,6 +17,14 @@ import inspect
 
 class DecoratorFactory(object):
     def __init__(self, size, frequency, verbose=False, on=True):
+        '''
+        @summary: constructor to set parameters
+        @param size: how many bytes the scratch directory can take
+        @param frequency: a float between 0.0 and 1.0, expressing with what
+        probability we use memoization if cache file found
+        @param verbose: print info at runtime
+        @param on: turn memoization on or off globally
+        '''
         self._size = size
         self._frequency = frequency
         self._verbose = verbose
@@ -24,6 +32,11 @@ class DecoratorFactory(object):
 
     def decorator(self, f):
         def wrapper(*args, **kwargs):
+            '''
+            @summary: actual memoization code
+            @param args: any arguments passed into the function decorated
+            @param kwargs: any keyword arguments passed
+            '''
             if self._on == False:
                 return f(*args, **kwargs)
             if self._verbose:
@@ -153,7 +166,7 @@ class DecoratorFactory(object):
     def __get_directory_size(self):
         #get the size of the data directory and filenames
         if self._verbose:
-            print "managing directory size"
+            print "getting directory size"
         path = os.environ['MEMODATA'] + "/"
         dirs = os.listdir(path)
         dir_size = []
@@ -165,22 +178,14 @@ class DecoratorFactory(object):
         return total_dir_size
 
     def __manage_directory_size(self):
-        #get the size of the data directory and filenames
-        if self._verbose:
-            print "managing directory size"
-        path = os.environ['MEMODATA'] + "/"
-        dirs = os.listdir(path)
-        dir_size = []
-        files = []
-        for file in dirs:
-            dir_size.append(os.path.getsize(path + file))
-            files.append(file)
-        total_dir_size = sum(dir_size)
+        total_dir_size = self.__get_directory_size()
+        
         if self._verbose:
             print "initial directory size is"
             print total_dir_size
         #if so, delete from last accessed file onwards
-        #currently, we will set it so that if the size of the folder is more than that set by the __init__.py file, we reduce it to that size
+        #currently, we will set it so that if the size of the folder is more 
+        #than that set by the __init__.py file, we reduce it to that size
 
         if total_dir_size > self._size:
             #sort by last accessed: make sure actually last accessed
