@@ -178,6 +178,16 @@ class DecoratorFactory(object):
         return total_dir_size
 
     def __manage_directory_size(self):
+        #get the size of the data directory and filenames
+        if self._verbose:
+            print "managing directory size"
+        path = os.environ['MEMODATA'] + "/"
+        dirs = os.listdir(path)
+        dir_size = []
+        files = []
+        for file in dirs:
+            dir_size.append(os.path.getsize(path + file))
+            files.append(file)
         total_dir_size = self.__get_directory_size()
         
         if self._verbose:
