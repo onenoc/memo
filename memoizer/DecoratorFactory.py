@@ -1,18 +1,17 @@
+'''
+@author: Alexander Moreno
+'''
 import hashlib
 import os
 import pickle as pkl
 import time
-import datetime as dt
-import copy
-import collections
+import itertools
 import numpy as numpy
 import pandas as pandas
 from MemoizedObject import MemoizedObject
-from copy import deepcopy
 from random import randrange
 from pandas.util.testing import assert_frame_equal
 
-import itertools
 import inspect
 
 class DecoratorFactory(object):
@@ -41,31 +40,24 @@ class DecoratorFactory(object):
                 return f(*args, **kwargs)
             if self._verbose:
                 print "starting decorator"
-            path = os.environ['MEMODATA'] + "/"
-            h = hashlib.md5(f.__name__).hexdigest()
-            for i in range(len(args)):
-                if args[i].__class__.__name__ == "MemoizerDataFrame":
-                    h += args[i].get_hash()
-                    args[i] = args[i].get_hash()
-                else:
-                    h += "+" + self.__hash_from_argument(args[i]).hexdigest()
-
-            for kwarg in kwargs:
-                h += "+" + self.__hash_from_argument(kwarg).hexdigest()
+            s_path = os.environ['MEMODATA'] + "/"
+            s_hash = hashlib.md5(f.__name__).hexdigest()
+            for argument in itertools.chain(args, kwargs):
+                s_hash += "+" + self.__hash_from_argument(argument).hexdigest()
             #get cache filename based on function name and arguments
-            cachefilename = path + h + '.pkl'
-            tmp_filename = path + str(time.time()) + ".pkl"
+            cachefilename = s_path + s_hash + '.pkl'
+            tmp_filename = s_path + str(time.time()) + ".pkl"
             if len(cachefilename) >= 250:
-                h = hashlib.md5(h).hexdigest()
-                cachefilename = path + h + '.pkl'
+                s_hash = hashlib.md5(s_hash).hexdigest()
+                cachefilename = s_path + s_hash + '.pkl'
                 print cachefilename
             #get based on same, but with "NO"
-            h_no = h + "no"
-            nocachefilename = path + h_no + '.pkl'
+            h_no = s_hash + "no"
+            nocachefilename = s_path + h_no + '.pkl'
             if len(cachefilename) >= 250:
-                h = self.__hash_from_argument(h).hexdigest()
-                h_no = h + "no"
-                nocachefilename = path + h_no + '.pkl'
+                s_hash = self.__hash_from_argument(s_hash).hexdigest()
+                h_no = s_hash + "no"
+                nocachefilename = s_path + h_no + '.pkl'
             try:
                 #rename to a tempfile, read from it, close it, and rename back
                 os.rename(cachefilename, tmp_filename)
@@ -76,16 +68,17 @@ class DecoratorFactory(object):
                 tmp_file.close()
                 os.rename(tmp_filename, cachefilename)
 
-
                 #handle return value
                 retval = memoizedObject.cache_object
-                #some % of the time, check to make sure calculated value matches the pkl file value
+                #some % of the time, check to make sure calculated value 
+                #matches the pkl file value
                 if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
                         retval_test = f(*args, **kwargs)
                         if self.__compare(retval, retval_test) == False:
                             print "Alert!!!  pkl value and calculated return value don't match"
                             retval = retval_test
-                #check to make sure that function definition hasn't changed, and if it has, recalculate
+                #check to make sure that function definition hasn't changed, 
+                #and if it has, recalculate
                 if inspect.getsource(f) != memoizedObject.definition:
                     os.remove(cachefilename)
                     retval = f(*args, **kwargs)
@@ -103,12 +96,12 @@ class DecoratorFactory(object):
                 if self._verbose:
                     print "file not found"
                 try:
-                    nocachefile_tmp_filename = path + str(time.time())
+                    nocachefile_tmp_filename = s_path + str(time.time())
                     os.rename(nocachefilename, nocachefile_tmp_filename)
                     print "have the no cache filename"
                     #open and close this file so that it is marked as opened for
                     # last accessed (need for cache eviction)
-                    nocachefile_tmp_file = open(noachefile_tmp_filename, "rb")
+                    nocachefile_tmp_file = open(nocachefile_tmp_filename, "rb")
                     nocachefile_tmp_file.close()
                     os.rename(nocachefile_tmp_filename, nocachefilename)
                     return f(*args, **kwargs)
@@ -145,11 +138,12 @@ class DecoratorFactory(object):
                     print "random"
                 #if the cache time is slower than the calculate time,
                 #or there is use of randomization
-                #create a file telling us not to use cache in future and delete cache file
+                #create a file telling us not to use cache in future and delete 
+                #cache file
                 if read_time > calc_time or random == 1:
                     if self._verbose:
                         print "too slow, not caching"
-                    tmp_create_nocachefilename = path + str(time.time())
+                    tmp_create_nocachefilename = s_path + str(time.time())
                     tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
                     tmp_create_nocachefile.close()
                     os.rename(tmp_create_nocachefilename, nocachefilename)
@@ -157,38 +151,22 @@ class DecoratorFactory(object):
                 if self._verbose:
                     print "about to return, just cached"
                 #check whether the current directory size is bigger than we want
-                if self.__get_directory_size() > self._size:
-                    #deal with cache eviction
-                    self.__manage_directory_size()
+                self.__manage_directory_size()
             return retval
         return wrapper
-
-    def __get_directory_size(self):
-        #get the size of the data directory and filenames
-        if self._verbose:
-            print "getting directory size"
-        path = os.environ['MEMODATA'] + "/"
-        dirs = os.listdir(path)
-        dir_size = []
-        files = []
-        for file in dirs:
-            dir_size.append(os.path.getsize(path + file))
-            files.append(file)
-        total_dir_size = sum(dir_size)
-        return total_dir_size
 
     def __manage_directory_size(self):
         #get the size of the data directory and filenames
         if self._verbose:
             print "managing directory size"
-        path = os.environ['MEMODATA'] + "/"
-        dirs = os.listdir(path)
+        s_path = os.environ['MEMODATA'] + "/"
+        dirs = os.listdir(s_path)
         dir_size = []
         files = []
-        for file in dirs:
-            dir_size.append(os.path.getsize(path + file))
+        for s_file in dirs:
+            dir_size.append(os.path.getsize(s_path + s_file))
             files.append(file)
-        total_dir_size = self.__get_directory_size()
+        total_dir_size = sum(dir_size)
         
         if self._verbose:
             print "initial directory size is"
@@ -199,17 +177,17 @@ class DecoratorFactory(object):
 
         if total_dir_size > self._size:
             #sort by last accessed: make sure actually last accessed
-            files.sort(key = lambda x: os.stat(path + x).st_atime)
+            files.sort(key = lambda x: os.stat(s_path + x).st_atime)
             files = list(reversed(files))
             files_to_delete = []
             i = 0
             while total_dir_size > self._size and i < len(files):
-                total_dir_size -= os.path.getsize(path + files[i])
+                total_dir_size -= os.path.getsize(s_path + files[i])
                 print total_dir_size
                 files_to_delete.append(files[i])
                 i += 1
-            for file in files_to_delete:
-                os.remove(path + file)
+            for s_file in files_to_delete:
+                os.remove(s_path + s_file)
 
     def __compare(self, value1, value2):
         if type(value1) != type(value2):
@@ -243,8 +221,8 @@ class DecoratorFactory(object):
                 try:
                     return str(value1) == str(value2)
                 except:
-                    return false
-
+                    return False
+    #this should use a try to see if we can hash it directly
     def __hash_from_argument(self, argument):
         arg_string = ""
         if type(argument) is numpy.ndarray:
