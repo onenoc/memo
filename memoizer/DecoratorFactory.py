@@ -1,5 +1,8 @@
 '''
 @author: Alexander Moreno
+@note: it would be nice if we could flush the cache for a single function from
+a single file easily.
+@note: research bencode
 '''
 import hashlib
 import os
@@ -43,7 +46,7 @@ class DecoratorFactory(object):
             s_path = os.environ['MEMODATA'] + "/"
             s_hash = hashlib.md5(f.__name__).hexdigest()
             for argument in itertools.chain(args, kwargs):
-                s_hash += "+" + self.__hash_from_argument(argument).hexdigest()
+                s_hash += "+" + self.__hash_from_argument(argument)
             #get cache filename based on function name and arguments
             cachefilename = s_path + s_hash + '.pkl'
             tmp_filename = s_path + str(time.time()) + ".pkl"
@@ -225,8 +228,16 @@ class DecoratorFactory(object):
     #this should use a try to see if we can hash it directly
     def __hash_from_argument(self, argument):
         arg_string = ""
+        if hasattr(argument, 'md5hash'):
+            return argument.md5hash
         if type(argument) is numpy.ndarray:
-            arg_string = str(argument.shape)
+            if argument.shape[0] * argument.shape[1] < 625000000:
+                return hashlib.md5(argument.data)
+            else:
+                return self.__hash_large_np_array(argument)
+            #what we should do is have an environment variable
+            #that specifies how many elements the array has to have  
+            #arg_string = str(argument.shape)
         if type(argument) is pandas.core.frame.DataFrame:
             col_values_list = list(argument.columns.values)
             col_values_string = ''.join(col_values_list)
@@ -234,5 +245,8 @@ class DecoratorFactory(object):
         if type(argument) is list or type(argument) is tuple:
             arg_string = str(len(argument))
         arg_string += str(argument)
-        return hashlib.md5(arg_string)
+        return hashlib.md5(arg_string).hexdigest()
 
+    def __hash_large_np_array(self, argument):
+        
+        print "hashed"

@@ -5,6 +5,8 @@
 import numpy as np
 import hashlib
 import pandas as pd
+import bencode
+#note this will require bencode
 #consider array, tuple, dataframe
 
 #dataframe allows you to set attributes, and they disappear when you run a function
@@ -29,10 +31,10 @@ class np_with_hash(np.ndarray):
         if obj is None: return
         self.info = getattr(obj, 'info', None)
 
-class tuple_with_hash(tuple):
-    def __new__(cls, input_tuple, info=None):
-        obj = tuple(input_tuple).view(cls)
-        obj.md5hash = hashlib.md5(obj).hexdigest()
+class t_with_hash(tuple):
+    def __new__(typ, itr):
+        obj = tuple.__new__(typ, itr)
+        obj.md5hash = hashlib.md5(bencode.bencode(itr)).hexdigest()
         return obj
         
 if __name__ == '__main__':
@@ -41,7 +43,6 @@ if __name__ == '__main__':
     if hasattr(x, 'md5hash'):
         print x.md5hash
     print x
-    y = (1, 2)
-    y = tuple_with_hash(y)
-    print y
+    y = t_with_hash((1, 2))
+    print y.md5hash
     

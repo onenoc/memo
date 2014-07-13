@@ -1,6 +1,5 @@
 import os
 
-
 if __name__ == 'main':
     path = os.environ['MEMODATA'] + "/"
     dirs = os.listdir(path)

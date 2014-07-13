@@ -25,4 +25,17 @@ def fib(n):
     return fib(n - 2) + fib(n - 1)
 
 if __name__ == '__main__':
-    print time.time()
+    start = time.time()
+    print fib_slow(30)
+    print time.time() - start
+    start = time.time()
+    print fib(30)
+    print time.time() - start
+    '''
+    @note: what we see is that for small values, fib_slow is actually faster.
+    This likely is due to cache misses.  Thus, repeated calls involving cache
+    misses will likely be slower
+    '''
+    
+    
+    
