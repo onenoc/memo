@@ -19,7 +19,7 @@ if __name__ == '__main__':
     s_hash = hashlib.md5(np.zeros((10000, 10000)).data).hexdigest()
     end = time.time() - start
     print end
-    '''
+
     for i in range(30000):
         if i % 1000 == 0:
             start = time.time()
@@ -27,8 +27,8 @@ if __name__ == '__main__':
             li_n.append(i)
             lf_times.append(time.time() - start)
             print time.time() - start
+    
     plt.plot(li_n, lf_times)
     plt.xlabel('n for nxn matrix')
     plt.ylabel('time (seconds)')
-    plt.show()
-    '''
+    plt.savefig()

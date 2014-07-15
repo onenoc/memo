@@ -1,9 +1,9 @@
 import os
 
-if __name__ == 'main':
+if __name__ == '__main__':
     path = os.environ['MEMODATA'] + "/"
-    dirs = os.listdir(path)
+    ls_dirs = os.listdir(path)
     dir_size = []
     files = []
-    for file in dirs:
-        os.remove(path + file)
+    for s_file in ls_dirs:
+        os.remove(path + s_file)

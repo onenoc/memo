@@ -8,6 +8,7 @@ import hashlib
 import os
 import pickle as pkl
 import time
+import random
 import itertools
 import numpy as numpy
 import pandas as pandas
@@ -70,9 +71,17 @@ class DecoratorFactory(object):
                 memoizedObject = pkl.load(tmp_file)
                 tmp_file.close()
                 os.rename(tmp_filename, cachefilename)
-
                 #handle return value
                 retval = memoizedObject.cache_object
+                memo_args = memoizedObject.args
+                for i in range(len(args)):
+                    if type(args[i]) is numpy.ndarray:
+                        i_match = self.__compare_matrices_random(args[i], memo_args[i])
+                        if i_match != 1:
+                            os.remove(cachefilename)
+                            #this will fail, and thus we'll go to the except
+                            raise IOError("numpy arrays don't match")
+
                 #some % of the time, check to make sure calculated value 
                 #matches the pkl file value
                 if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
@@ -115,7 +124,7 @@ class DecoratorFactory(object):
                 #calculate return value and log time
                 start_calc = time.time()
                 retval = f(*args, **kwargs)
-                memoizedObject = MemoizedObject(inspect.getsource(f), retval)
+                memoizedObject = MemoizedObject(inspect.getsource(f), retval, args, kwargs)
                 calc_time = time.time() - start_calc
                 tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
@@ -232,9 +241,9 @@ class DecoratorFactory(object):
             return argument.md5hash
         if type(argument) is numpy.ndarray:
             if argument.shape[0] * argument.shape[1] < 625000000:
-                return hashlib.md5(argument.data)
+                return hashlib.md5(argument.data).hexdigest()
             else:
-                return self.__hash_large_np_array(argument)
+                arg_string = str(argument.shape)
             #what we should do is have an environment variable
             #that specifies how many elements the array has to have  
             #arg_string = str(argument.shape)
@@ -247,6 +256,11 @@ class DecoratorFactory(object):
         arg_string += str(argument)
         return hashlib.md5(arg_string).hexdigest()
 
-    def __hash_large_np_array(self, argument):
-        
-        print "hashed"
+    def __compare_matrices_random(self, np_array_1, np_array_2):
+        i_size = np_array_1.shape[0] * np_array_1.shape[1]
+        for i in range(int(0.02 * i_size)):
+            x = random.randrange(np_array_1.shape[0])
+            y = random.randrange(np_array_1.shape[1])
+            if np_array_1[x][y] != np_array_2[x][y]:
+                return 0
+        return 1
