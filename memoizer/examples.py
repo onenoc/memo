@@ -8,6 +8,7 @@ import numpy as np
 
 import numpy as np
 from memoizer.DecoratorFactoryInstance import factory
+
 def sleepy(x):
     time.sleep(5)
     return x
@@ -37,15 +38,20 @@ def compare_matrices_random(np_array_1, np_array_2):
             return 0
         return 1
 
-if __name__ == '__main__':
-    np_array_1 = np.zeros((10, 10))
-    np_array_2 = np.ones((10, 10))
-    print compare_matrices_random(np_array_1, np_array_2)
-    sleepy2(np_array_1)
-    print "sleepy2 finished"
-    sleepy2(np_array_1)
-    print "sleepy2 finished"
+@factory.decorator
+def return_same_array(np_array):
+    time.sleep(2)
+    return np_array
 
+if __name__ == '__main__':
+    np_array_1 = np.zeros((2000, 2000))
+    return_same_array(np_array_1)
+    print "returned"
+    np_array_1[500:1000, 500:1000]=1
+    print np_array_1
+    return_same_array(np_array_1)
+    print "returned"
+    
     '''
     @note: what we see is that for small values, fib_slow is actually faster.
     This likely is due to cache misses.  Thus, repeated calls involving cache

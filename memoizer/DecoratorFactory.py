@@ -79,8 +79,7 @@ class DecoratorFactory(object):
                         i_match = self.__compare_matrices_random(args[i], memo_args[i])
                         if i_match != 1:
                             os.remove(cachefilename)
-                            #this will fail, and thus we'll go to the except
-                            raise IOError("numpy arrays don't match")
+                            raise arrayMatchError("arrays don't match")
 
                 #some % of the time, check to make sure calculated value 
                 #matches the pkl file value
@@ -104,7 +103,7 @@ class DecoratorFactory(object):
                 except:
                     pass
                 retval = f(*args, **kwargs)
-            except (OSError, IOError) as e:
+            except (OSError, IOError, arrayMatchError) as e:
                 if self._verbose:
                     print "file not found"
                 try:
@@ -258,9 +257,14 @@ class DecoratorFactory(object):
 
     def __compare_matrices_random(self, np_array_1, np_array_2):
         i_size = np_array_1.shape[0] * np_array_1.shape[1]
-        for i in range(int(0.02 * i_size)):
+        for i in range(int(0.05 * i_size)):
             x = random.randrange(np_array_1.shape[0])
             y = random.randrange(np_array_1.shape[1])
-            if np_array_1[x][y] != np_array_2[x][y]:
+            print np_array_1[x, y]
+            print np_array_2[x, y]
+            if np_array_1[x, y] != np_array_2[x, y]:
                 return 0
         return 1
+    
+class arrayMatchError(Exception):
+    pass
