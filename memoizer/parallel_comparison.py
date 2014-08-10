@@ -23,8 +23,8 @@ def get_hash_and_hexdigest(np_array):
     return hashlib.md5(np_array.data).hexdigest()
     
 if __name__ == '__main__':
-    np_zeros_01 = np.zeros((20000, 20000))
-    np_zeros_02 = np.zeros((20000, 20000))
+    np_zeros_01 = np.zeros((30000, 30000))
+    np_zeros_02 = np.zeros((30000, 30000))
     start = time.time()
     print np.array_equal(np_zeros_01, np_zeros_02)
     print time.time() - start

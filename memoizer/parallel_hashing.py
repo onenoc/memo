@@ -24,9 +24,11 @@ def get_hash_and_hexdigest(np_array):
     
 if __name__ == '__main__':
     start = time.time()
-    np_zeros = np.zeros((20000, 20000))
+    np_zeros = np.zeros((30000, 30000))
     print hashlib.md5(np_zeros.data).hexdigest()
     print time.time() - start
+    '''
     start = time.time()
     print parallel_hash_matrix(np_zeros, 2)
     print time.time() - start
+    '''
