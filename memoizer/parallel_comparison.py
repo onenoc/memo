@@ -4,9 +4,9 @@ import numpy as np
 from multiprocessing import Pool
 import hashlib
 
-def parallel_hash_matrix(np_array, i_processes):
-    if i_processes > np_array.shape[1]:
-        return hashlib.md5.hexdigest(np_array)
+def parallel_compare_matrices(np_array_01, np_array_02, i_processes):
+    if i_processes > np_array_01.shape[1]:
+        return np.array_equal(value1, value2)
     ls_hashes = get_hashes_parallel(np_array, i_processes)
     s_hash = hashlib.md5('+'.join(ls_hashes)).hexdigest()
     return s_hash
@@ -23,10 +23,10 @@ def get_hash_and_hexdigest(np_array):
     return hashlib.md5(np_array.data).hexdigest()
     
 if __name__ == '__main__':
+    np_zeros_01 = np.zeros((20000, 20000))
+    np_zeros_02 = np.zeros((20000, 20000))
     start = time.time()
-    np_zeros = np.zeros((20000, 20000))
-    print hashlib.md5(np_zeros.data).hexdigest()
+    print np.array_equal(np_zeros_01, np_zeros_02)
     print time.time() - start
     start = time.time()
-    print parallel_hash_matrix(np_zeros, 2)
     print time.time() - start
