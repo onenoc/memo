@@ -4,7 +4,8 @@
 '''
 import time
 import random
-import numpy as np
+import os
+import hashlib
 
 import numpy as np
 from memoizer.DecoratorFactoryInstance import factory
@@ -40,23 +41,40 @@ def compare_matrices_random(np_array_1, np_array_2):
 
 @factory.decorator
 def return_same_array(np_array):
-    time.sleep(2)
     return np_array
 
+def mutate_args(li_list):
+    for i in range(len(li_list)):
+        li_list[i] = li_list[i] - 1
+    return 1
+
 if __name__ == '__main__':
+    '''
+    x = [1, 2, 3]
+    print mutate_args(x)
+    print x
+    '''
+    
+    '''
     np_array_1 = np.zeros((2000, 2000))
     return_same_array(np_array_1)
-    print "returned"
+    time.sleep(7)
     np_array_1[500:1000, 500:1000]=1
-    print np_array_1
     return_same_array(np_array_1)
-    print "returned"
+    '''
+    
+    x = [0] * 100000000
+    y = [0] * 100000000
+    start = time.time()
+    z = [x[i] == y[i] for i in range(len(x))]
+    print time.time() - start
+    start = time.time()
+    for i in range(len(x)):
+        z[i] = (x[i] == y[i])
+    print time.time() - start
     
     '''
     @note: what we see is that for small values, fib_slow is actually faster.
     This likely is due to cache misses.  Thus, repeated calls involving cache
     misses will likely be slower
     '''
-    
-    
-    

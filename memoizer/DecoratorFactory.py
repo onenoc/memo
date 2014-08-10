@@ -14,7 +14,8 @@ import numpy as numpy
 import pandas as pandas
 from MemoizedObject import MemoizedObject
 from random import randrange
-from pandas.util.testing import assert_frame_equal
+
+from comparisons import compare_data_structures, compare_matrices_random
 
 import inspect
 
@@ -76,16 +77,18 @@ class DecoratorFactory(object):
                 memo_args = memoizedObject.args
                 for i in range(len(args)):
                     if type(args[i]) is numpy.ndarray:
-                        i_match = self.__compare_matrices_random(args[i], memo_args[i])
+                        i_match = compare_matrices_random(args[i], memo_args[i])
                         if i_match != 1:
                             os.remove(cachefilename)
                             raise arrayMatchError("arrays don't match")
+                        else:
+                            print "Arrays match"
 
                 #some % of the time, check to make sure calculated value 
                 #matches the pkl file value
                 if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
                         retval_test = f(*args, **kwargs)
-                        if self.__compare(retval, retval_test) == False:
+                        if compare_data_structures(retval, retval_test) == False:
                             print "Alert!!!  pkl value and calculated return value don't match"
                             retval = retval_test
                 #check to make sure that function definition hasn't changed, 
@@ -200,39 +203,7 @@ class DecoratorFactory(object):
             for s_file in files_to_delete:
                 os.remove(s_path + s_file)
 
-    def __compare(self, value1, value2):
-        if type(value1) != type(value2):
-            return False
-        if type(value1) is numpy.ndarray:
-            h1 = hashlib.md5(value1.data).hexdigest()
-            h2 = hashlib.md5(value2.data).hexdigest()
-            return (h1==h2)
-        elif type(value1) is list or type(value1) is tuple:
-            if len(value1) != len(value2):
-                return False
-            try:
-                equality = (value1 == value2)
-                return equality
-            except:
-                for i in range(len(value1)):
-                    if self.__compare(value1[i], value2[i]) == False:
-                        return False
-                return True
-        elif type(value1) is pandas.core.frame.DataFrame:
-            try:
-                assert_frame_equal(value1, value2, check_names=True)
-                return True
-            except AssertionError:
-                return False
-        else:
-            try:
-                equality = (value1 == value2)
-                return equality
-            except:
-                try:
-                    return str(value1) == str(value2)
-                except:
-                    return False
+
     #this should use a try to see if we can hash it directly
     def __hash_from_argument(self, argument):
         arg_string = ""
@@ -255,16 +226,7 @@ class DecoratorFactory(object):
         arg_string += str(argument)
         return hashlib.md5(arg_string).hexdigest()
 
-    def __compare_matrices_random(self, np_array_1, np_array_2):
-        i_size = np_array_1.shape[0] * np_array_1.shape[1]
-        for i in range(int(0.05 * i_size)):
-            x = random.randrange(np_array_1.shape[0])
-            y = random.randrange(np_array_1.shape[1])
-            print np_array_1[x, y]
-            print np_array_2[x, y]
-            if np_array_1[x, y] != np_array_2[x, y]:
-                return 0
-        return 1
+
     
 class arrayMatchError(Exception):
     pass
