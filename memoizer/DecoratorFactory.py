@@ -219,8 +219,12 @@ class DecoratorFactory(object):
             #arg_string = str(argument.shape)
         if type(argument) is pandas.core.frame.DataFrame:
             col_values_list = list(argument.columns.values)
-            col_values_string = ''.join(col_values_list)
-            arg_string = col_values_string
+            try:
+                col_values_string = ''.join(col_values_list)
+                arg_string = col_values_string
+                return hashlib.md5(argument.values.data).hexdigest() + "+" + hashlib.md5(arg_string).hexdigest()
+            except:
+                return hashlib.md5(argument.values.data).hexdigest()
         if type(argument) is list or type(argument) is tuple:
             arg_string = str(len(argument))
         arg_string += str(argument)
