@@ -24,7 +24,7 @@ def get_hash_and_hexdigest(np_array):
     
 if __name__ == '__main__':
     start = time.time()
-    np_zeros = np.zeros((30000, 30000))
+    np_zeros = np.zeros((40000, 40000))
     print hashlib.md5(np_zeros.data).hexdigest()
     print time.time() - start
     '''

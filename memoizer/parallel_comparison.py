@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+import pandas as pd
 from multiprocessing import Pool
 import hashlib
 
@@ -28,5 +29,9 @@ if __name__ == '__main__':
     start = time.time()
     print np.array_equal(np_zeros_01, np_zeros_02)
     print time.time() - start
+    df01 = pd.DataFrame(np_zeros_01)
+    df02 = pd.DataFrame(np_zeros_02)
     start = time.time()
+    #print pd.util.testing.assert_frame_equal(df01, df02)
+    print np.array_equal(df01.values, df02.values)
     print time.time() - start
