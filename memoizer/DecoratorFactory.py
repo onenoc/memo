@@ -14,6 +14,7 @@ import numpy as numpy
 import pandas as pandas
 from MemoizedObject import MemoizedObject
 from random import randrange
+import xxh
 
 from comparisons import compare_data_structures, compare_matrices_random
 
@@ -46,14 +47,16 @@ class DecoratorFactory(object):
             if self._verbose:
                 print "starting decorator"
             s_path = os.environ['MEMODATA'] + "/"
-            s_hash = hashlib.md5(f.__name__).hexdigest()
+            #s_hash = hashlib.md5(f.__name__).hexdigest()
+            s_hash = str(xxh.hash64(f.__name__))
             for argument in itertools.chain(args, kwargs):
                 s_hash += "+" + self.__hash_from_argument(argument)
             #get cache filename based on function name and arguments
             cachefilename = s_path + s_hash + '.pkl'
             tmp_filename = s_path + str(time.time()) + ".pkl"
             if len(cachefilename) >= 250:
-                s_hash = hashlib.md5(s_hash).hexdigest()
+                #s_hash = hashlib.md5(s_hash).hexdigest()
+                s_hash = str(xxh.hash64(s_hash))
                 cachefilename = s_path + s_hash + '.pkl'
                 print cachefilename
             #get based on same, but with "NO"
@@ -212,7 +215,8 @@ class DecoratorFactory(object):
             return argument.md5hash
         if type(argument) is numpy.ndarray:
             if argument.shape[0] * argument.shape[1] < 625000000:
-                return hashlib.md5(argument.data).hexdigest()
+                #return hashlib.md5(argument.data).hexdigest()
+                return str(xxh.hash64(argument.data))
             else:
                 arg_string = str(argument.shape)
             #what we should do is have an environment variable
@@ -225,11 +229,13 @@ class DecoratorFactory(object):
                 arg_string = col_values_string
                 return hashlib.md5(argument.values.data).hexdigest() + "+" + hashlib.md5(arg_string).hexdigest()
             except:
-                return hashlib.md5(argument.values.data).hexdigest()
+                return str(xxh.hash64(argument.values.data))
+            #hashlib.md5(argument.values.data).hexdigest()
         if type(argument) is list or type(argument) is tuple:
             arg_string = str(len(argument))
         arg_string += str(argument)
-        return hashlib.md5(arg_string).hexdigest()
+        return str(xxh.hash64(arg_string)) 
+        #hashlib.md5(arg_string).hexdigest()
 
 
     
