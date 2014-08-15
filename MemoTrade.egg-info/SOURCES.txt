@@ -11,7 +11,10 @@ memoizer/__init__.py
 memoizer/comparisons.py
 memoizer/examples.py
 memoizer/flush_cache.py
+memoizer/hash.py
 memoizer/hash_timing.py
+memoizer/hash_timing_02.py
+memoizer/pandas_mutability_testing.py
 memoizer/parallel_comparison.py
 memoizer/parallel_hashing.py
 memoizer/set_json.py

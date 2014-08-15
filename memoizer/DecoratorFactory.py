@@ -179,7 +179,7 @@ class DecoratorFactory(object):
         files = []
         for s_file in dirs:
             dir_size.append(os.path.getsize(s_path + s_file))
-            files.append(file)
+            files.append(s_file)
         total_dir_size = sum(dir_size)
         
         if self._verbose:
@@ -191,6 +191,7 @@ class DecoratorFactory(object):
 
         if total_dir_size > self._size:
             #sort by last accessed: make sure actually last accessed
+            print s_path
             files.sort(key = lambda x: os.stat(s_path + x).st_atime)
             files = list(reversed(files))
             files_to_delete = []
