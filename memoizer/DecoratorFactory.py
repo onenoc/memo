@@ -47,15 +47,15 @@ class DecoratorFactory(object):
             if self._verbose:
                 print "starting decorator"
             s_path = os.environ['MEMODATA'] + "/"
-            #s_hash = hashlib.md5(f.__name__).hexdigest()
             s_hash = str(xxhash.xxh64(f.__name__))
             for argument in itertools.chain(args, kwargs):
                 s_hash += "+" + self.__hash_from_argument(argument)
             #get cache filename based on function name and arguments
             cachefilename = s_path + s_hash + '.pkl'
             tmp_filename = s_path + str(time.time()) + ".pkl"
+            if self._verbose:
+                print "cache filename is %s" % (cachefilename)
             if len(cachefilename) >= 250:
-                #s_hash = hashlib.md5(s_hash).hexdigest()
                 s_hash = str(xxhash.xxh64(s_hash))
                 cachefilename = s_path + s_hash + '.pkl'
                 print cachefilename
@@ -144,7 +144,6 @@ class DecoratorFactory(object):
                 tmp_file.close()
                 read_time = time.time() - start_read
                 os.rename(tmp_filename, cachefilename)
-
                 #detect use of randomization
                 source = inspect.getsource(f)
                 random = 0
@@ -212,28 +211,19 @@ class DecoratorFactory(object):
         if hasattr(argument, 'md5hash'):
             return argument.md5hash
         if type(argument) is numpy.ndarray:
-            if argument.shape[0] * argument.shape[1] < 625000000:
-                #return hashlib.md5(argument.data).hexdigest()
-                return str(xxhash.xxh64(argument.data))
-            else:
-                arg_string = str(argument.shape)
-            #what we should do is have an environment variable
-            #that specifies how many elements the array has to have  
-            #arg_string = str(argument.shape)
+            return str(xxhash.xxh64(argument.data))
         if type(argument) is pandas.core.frame.DataFrame:
             col_values_list = list(argument.columns.values)
             try:
                 col_values_string = ''.join(col_values_list)
                 arg_string = col_values_string
-                return hashlib.md5(argument.values.data).hexdigest() + "+" + hashlib.md5(arg_string).hexdigest()
+                return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
             except:
-                return str(xxhash.xxh64(argument.values.tostring()))
-            #hashlib.md5(argument.values.data).hexdigest()
+                return str(xxhash.xxh64(argument.values.data))
         if type(argument) is list or type(argument) is tuple:
             arg_string = str(len(argument))
         arg_string += str(argument)
         return str(xxhash.xxh64(arg_string)) 
-        #hashlib.md5(arg_string).hexdigest()
 
 
     
