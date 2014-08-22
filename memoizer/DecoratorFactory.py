@@ -210,6 +210,8 @@ class DecoratorFactory(object):
         arg_string = ""
         if hasattr(argument, 'md5hash'):
             return argument.md5hash
+        if hasattr(argument, 'xxhash64'):
+            return argument.xxhash64
         if type(argument) is numpy.ndarray:
             return str(xxhash.xxh64(argument.data))
         if type(argument) is pandas.core.frame.DataFrame:
