@@ -17,7 +17,7 @@ from random import randrange
 import xxhash
 import xxh
 
-from comparisons import compare_data_structures, compare_matrices_random
+from comparisons import compare_data_structures
 
 import inspect
 
@@ -50,13 +50,7 @@ class DecoratorFactory(object):
             (s_path, cachefilename, nocachefilename, tmp_filename) = self.__get_filename_hashes(f.__name__, args, kwargs)
             try:
                 #rename to a tempfile, read from it, close it, and rename back
-                os.rename(cachefilename, tmp_filename)
-                if self._verbose:
-                    print "file already exists, reading from cache"
-                tmp_file = open(tmp_filename, "rb")
-                memoizedObject = pkl.load(tmp_file)
-                tmp_file.close()
-                os.rename(tmp_filename, cachefilename)
+                memoizedObject = self.__load_memoized_object(self, cachefilename)
                 #handle return value
                 retval = memoizedObject.cache_object
                 memo_args = memoizedObject.args
@@ -82,18 +76,11 @@ class DecoratorFactory(object):
                 except:
                     pass
                 retval = f(*args, **kwargs)
-            except (OSError, IOError, arrayMatchError) as e:
+            except (OSError, IOError) as e:
                 if self._verbose:
                     print "file not found"
                 try:
-                    nocachefile_tmp_filename = s_path + str(time.time())
-                    os.rename(nocachefilename, nocachefile_tmp_filename)
-                    print "have the no cache filename"
-                    #open and close this file so that it is marked as opened for
-                    # last accessed (need for cache eviction)
-                    nocachefile_tmp_file = open(nocachefile_tmp_filename, "rb")
-                    nocachefile_tmp_file.close()
-                    os.rename(nocachefile_tmp_filename, nocachefilename)
+                    self.__find_nocachefile(nocachefilename, s_path)
                     return f(*args, **kwargs)
                 except (OSError, IOError) as e:
                     pass
@@ -120,17 +107,13 @@ class DecoratorFactory(object):
                 read_time = time.time() - start_read
                 os.rename(tmp_filename, cachefilename)
                 #detect use of randomization
-                source = inspect.getsource(f)
-                random = 0
-                if "rand" in source:
-                    random = 1
-                    print "random"
+                random = self.__detect_randomization(f)
                 #if the cache time is slower than the calculate time,
                 #or there is use of randomization
                 #create a file telling us not to use cache in future and delete 
                 #cache file
                 if read_time > calc_time or random == 1:
-                    self.__handle_memoization_slow(s_path, cachefilename, nocachefilename)
+                    self.__indicate_no_memoization(s_path, cachefilename, nocachefilename)
                 if self._verbose:
                     print "about to return, just cached"
                 #check whether the current directory size is bigger than we want
@@ -138,6 +121,78 @@ class DecoratorFactory(object):
             return retval
         return wrapper
 
+    def __detect_randomization(self, f)
+        source = inspect.getsource(f)
+        random = 0
+        if "rand" in source:
+            random = 1
+            print "random"
+        return random
+
+    def __get_filename_hashes(self, s_funcname, args, kwargs):
+        s_path = os.environ['MEMODATA'] + "/"
+        s_hash_funcname = str(xxhash.xxh64(s_funcname))
+        s_hash = ''
+        for argument in itertools.chain(args, kwargs):
+            s_hash += self.__hash_from_argument(argument)
+        #get cache filename based on function name and arguments
+        cachefilename = s_path + s_hash_funcname + s_hash + '.pkl'
+        nocachefilename = s_path + s_hash_funcname + s_hash + "no" + ".pkl."
+        tmp_filename = s_path + str(time.time()) + ".pkl"
+        if self._verbose:
+            print "cache filename is %s" % (cachefilename)
+        return (s_path, cachefilename, nocachefilename, tmp_filename)
+
+    def __indicate_no_memoization(self, s_path, cachefilename, nocachefilename):
+        if self._verbose:
+            print "too slow or random, not caching"
+        tmp_create_nocachefilename = s_path + str(time.time())
+        tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
+        tmp_create_nocachefile.close()
+        os.rename(tmp_create_nocachefilename, nocachefilename)
+        os.remove(cachefilename)
+
+    #this should use a try to see if we can hash it directly
+    def __hash_from_argument(self, argument):
+        arg_string = ""
+        if hasattr(argument, 'md5hash'):
+            return argument.md5hash
+        if hasattr(argument, 'xxhash64'):
+            return argument.xxhash64
+        if type(argument) is numpy.ndarray:
+            if argument.size > 181440000:
+                return str(xxh.hash64(argument.data))
+            else:
+                return str(xxhash.xxh64(argument.data))
+        if type(argument) is pandas.core.frame.DataFrame:
+            col_values_list = list(argument.columns.values)
+            try:
+                col_values_string = ''.join(col_values_list)
+                arg_string = col_values_string
+                if argument.values.size > 181440000:
+                    return str(xxh.hash64(argument.data)) + "+" + str(xxhash.xxh64(arg_string))
+                else:
+                    return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
+            except:
+                if argument.values.size > 181440000:
+                    return str(xxh.hash64(argument.data))
+                else:
+                    return str(xxhash.xxh64(argument.values.data))
+        if type(argument) is list or type(argument) is tuple:
+            arg_string = str(len(argument))
+        arg_string += str(argument)
+        return str(xxhash.xxh64(arg_string)) 
+
+    def __load_memoized_object(self, cachefilename, tmp_filename):
+        os.rename(cachefilename, tmp_filename)
+        if self._verbose:
+            print "file already exists, reading from cache"
+        tmp_file = open(tmp_filename, "rb")
+        memoizedObject = pkl.load(tmp_file)
+	tmp_file.close()
+	os.rename(tmp_filename, cachefilename)
+        return memoizedObject
+    
     def __manage_directory_size(self):
         #get the size of the data directory and filenames
         if self._verbose:
@@ -173,60 +228,15 @@ class DecoratorFactory(object):
             for s_file in files_to_delete:
                 os.remove(s_path + s_file)
 
-    def __get_filename_hashes(self, s_funcname, args, kwargs):
-        s_path = os.environ['MEMODATA'] + "/"
-        s_hash_funcname = str(xxhash.xxh64(s_funcname))
-        s_hash = ''
-        for argument in itertools.chain(args, kwargs):
-            s_hash += self.__hash_from_argument(argument)
-        #get cache filename based on function name and arguments
-        cachefilename = s_path + s_hash_funcname + s_hash + '.pkl'
-        nocachefilename = s_path + s_hash_funcname + s_hash + "no" + ".pkl."
-        tmp_filename = s_path + str(time.time()) + ".pkl"
-        if self._verbose:
-            print "cache filename is %s" % (cachefilename)
-        return (s_path, cachefilename, nocachefilename, tmp_filename)
-
-    def __handle_memoization_slow(self, s_path, cachefilename, nocachefilename):
-        if self._verbose:
-            print "too slow, not caching"
-        tmp_create_nocachefilename = s_path + str(time.time())
-        tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
-        tmp_create_nocachefile.close()
-        os.rename(tmp_create_nocachefilename, nocachefilename)
-        os.remove(cachefilename)
-        
-
-    #this should use a try to see if we can hash it directly
-    def __hash_from_argument(self, argument):
-        arg_string = ""
-        if hasattr(argument, 'md5hash'):
-            return argument.md5hash
-        if hasattr(argument, 'xxhash64'):
-            return argument.xxhash64
-        if type(argument) is numpy.ndarray:
-            if argument.size > 181440000:
-                return str(xxh.hash64(argument.data))
-            else:
-                return str(xxhash.xxh64(argument.data))
-        if type(argument) is pandas.core.frame.DataFrame:
-            col_values_list = list(argument.columns.values)
-            try:
-                col_values_string = ''.join(col_values_list)
-                arg_string = col_values_string
-                if argument.values.size > 181440000:
-                    return str(xxh.hash64(argument.data)) + "+" + str(xxhash.xxh64(arg_string))
-                else:
-                    return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
-            except:
-                if argument.values.size > 181440000:
-                    return str(xxh.hash64(argument.data))
-                else:
-                    return str(xxhash.xxh64(argument.values.data))
-        if type(argument) is list or type(argument) is tuple:
-            arg_string = str(len(argument))
-        arg_string += str(argument)
-        return str(xxhash.xxh64(arg_string)) 
+    def __find_nocachefile(self, nocachefilename, s_path)
+        nocachefile_tmp_filename = s_path + str(time.time())
+        os.rename(nocachefilename, nocachefile_tmp_filename)
+        print "have the no cache filename"
+        #open and close this file so that it is marked as opened for
+        # last accessed (need for cache eviction)
+        nocachefile_tmp_file = open(nocachefile_tmp_filename, "rb")
+        nocachefile_tmp_file.close()
+        os.rename(nocachefile_tmp_filename, nocachefilename)
     
 class arrayMatchError(Exception):
     pass
