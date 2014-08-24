@@ -49,29 +49,7 @@ def mutate_args(li_list):
     return 1
 
 if __name__ == '__main__':
-    '''
-    x = [1, 2, 3]
-    print mutate_args(x)
-    print x
-    '''
-    
-    '''
-    np_array_1 = np.zeros((2000, 2000))
-    return_same_array(np_array_1)
-    time.sleep(7)
-    np_array_1[500:1000, 500:1000]=1
-    return_same_array(np_array_1)
-    '''
-    
-    x = [0] * 100000000
-    y = [0] * 100000000
-    start = time.time()
-    z = [x[i] == y[i] for i in range(len(x))]
-    print time.time() - start
-    start = time.time()
-    for i in range(len(x)):
-        z[i] = (x[i] == y[i])
-    print time.time() - start
+    sleepy2(5)
     
     '''
     @note: what we see is that for small values, fib_slow is actually faster.

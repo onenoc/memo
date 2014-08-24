@@ -47,26 +47,7 @@ class DecoratorFactory(object):
                 return f(*args, **kwargs)
             if self._verbose:
                 print "starting decorator"
-            s_path = os.environ['MEMODATA'] + "/"
-            s_hash = str(xxhash.xxh64(f.__name__))
-            for argument in itertools.chain(args, kwargs):
-                s_hash += "+" + self.__hash_from_argument(argument)
-            #get cache filename based on function name and arguments
-            cachefilename = s_path + s_hash + '.pkl'
-            tmp_filename = s_path + str(time.time()) + ".pkl"
-            if self._verbose:
-                print "cache filename is %s" % (cachefilename)
-            if len(cachefilename) >= 250:
-                s_hash = str(xxhash.xxh64(s_hash))
-                cachefilename = s_path + s_hash + '.pkl'
-                print cachefilename
-            #get based on same, but with "NO"
-            h_no = s_hash + "no"
-            nocachefilename = s_path + h_no + '.pkl'
-            if len(cachefilename) >= 250:
-                s_hash = self.__hash_from_argument(s_hash).hexdigest()
-                h_no = s_hash + "no"
-                nocachefilename = s_path + h_no + '.pkl'
+            (s_path, cachefilename, nocachefilename, tmp_filename) = self.__get_filename_hashes(f.__name__, args, kwargs)
             try:
                 #rename to a tempfile, read from it, close it, and rename back
                 os.rename(cachefilename, tmp_filename)
@@ -204,6 +185,20 @@ class DecoratorFactory(object):
                 i += 1
             for s_file in files_to_delete:
                 os.remove(s_path + s_file)
+
+    def __get_filename_hashes(self, s_funcname, args, kwargs):
+        s_path = os.environ['MEMODATA'] + "/"
+        s_hash_funcname = str(xxhash.xxh64(s_funcname))
+        s_hash = ''
+        for argument in itertools.chain(args, kwargs):
+            s_hash += self.__hash_from_argument(argument)
+        #get cache filename based on function name and arguments
+        cachefilename = s_path + s_hash_funcname + s_hash + '.pkl'
+        nocachefilename = s_path + s_hash_funcname + s_hash + "no" + ".pkl."
+        tmp_filename = s_path + str(time.time()) + ".pkl"
+        if self._verbose:
+            print "cache filename is %s" % (cachefilename)
+        return (s_path, cachefilename, nocachefilename, tmp_filename)
 
 
     #this should use a try to see if we can hash it directly
