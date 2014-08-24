@@ -50,7 +50,7 @@ class DecoratorFactory(object):
             (s_path, cachefilename, nocachefilename, tmp_filename) = self.__get_filename_hashes(f.__name__, args, kwargs)
             try:
                 #rename to a tempfile, read from it, close it, and rename back
-                memoizedObject = self.__load_memoized_object(self, cachefilename)
+                memoizedObject = self.__load_memoized_object(cachefilename, tmp_filename)
                 #handle return value
                 retval = memoizedObject.cache_object
                 memo_args = memoizedObject.args
@@ -121,7 +121,7 @@ class DecoratorFactory(object):
             return retval
         return wrapper
 
-    def __detect_randomization(self, f)
+    def __detect_randomization(self, f):
         source = inspect.getsource(f)
         random = 0
         if "rand" in source:
@@ -184,6 +184,8 @@ class DecoratorFactory(object):
         return str(xxhash.xxh64(arg_string)) 
 
     def __load_memoized_object(self, cachefilename, tmp_filename):
+        print cachefilename
+        print tmp_filename
         os.rename(cachefilename, tmp_filename)
         if self._verbose:
             print "file already exists, reading from cache"
@@ -228,7 +230,7 @@ class DecoratorFactory(object):
             for s_file in files_to_delete:
                 os.remove(s_path + s_file)
 
-    def __find_nocachefile(self, nocachefilename, s_path)
+    def __find_nocachefile(self, nocachefilename, s_path):
         nocachefile_tmp_filename = s_path + str(time.time())
         os.rename(nocachefilename, nocachefile_tmp_filename)
         print "have the no cache filename"
