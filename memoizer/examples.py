@@ -16,7 +16,6 @@ def sleepy(x):
 
 @factory.decorator
 def sleepy2(x):
-    time.sleep(5)
     return x
 
 def fib_slow(n):

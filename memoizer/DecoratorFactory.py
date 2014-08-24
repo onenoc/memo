@@ -60,13 +60,6 @@ class DecoratorFactory(object):
                 #handle return value
                 retval = memoizedObject.cache_object
                 memo_args = memoizedObject.args
-                for i in range(len(args)):
-                    if type(args[i]) is numpy.ndarray:
-                        i_match = compare_matrices_random(args[i], memo_args[i])
-                        if i_match != 1:
-                            os.remove(cachefilename)
-                            raise arrayMatchError("arrays don't match")
-
                 #some % of the time, check to make sure calculated value 
                 #matches the pkl file value
                 if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
@@ -137,13 +130,7 @@ class DecoratorFactory(object):
                 #create a file telling us not to use cache in future and delete 
                 #cache file
                 if read_time > calc_time or random == 1:
-                    if self._verbose:
-                        print "too slow, not caching"
-                    tmp_create_nocachefilename = s_path + str(time.time())
-                    tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
-                    tmp_create_nocachefile.close()
-                    os.rename(tmp_create_nocachefilename, nocachefilename)
-                    os.remove(cachefilename)
+                    self.__handle_memoization_slow(s_path, cachefilename, nocachefilename)
                 if self._verbose:
                     print "about to return, just cached"
                 #check whether the current directory size is bigger than we want
@@ -200,6 +187,15 @@ class DecoratorFactory(object):
             print "cache filename is %s" % (cachefilename)
         return (s_path, cachefilename, nocachefilename, tmp_filename)
 
+    def __handle_memoization_slow(self, s_path, cachefilename, nocachefilename):
+        if self._verbose:
+            print "too slow, not caching"
+        tmp_create_nocachefilename = s_path + str(time.time())
+        tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
+        tmp_create_nocachefile.close()
+        os.rename(tmp_create_nocachefilename, nocachefilename)
+        os.remove(cachefilename)
+        
 
     #this should use a try to see if we can hash it directly
     def __hash_from_argument(self, argument):
