@@ -15,6 +15,7 @@ import pandas as pandas
 from MemoizedObject import MemoizedObject
 from random import randrange
 import xxhash
+import xxh
 
 from comparisons import compare_data_structures, compare_matrices_random
 
@@ -213,21 +214,28 @@ class DecoratorFactory(object):
         if hasattr(argument, 'xxhash64'):
             return argument.xxhash64
         if type(argument) is numpy.ndarray:
-            return str(xxhash.xxh64(argument.data))
+            if argument.size > 181440000:
+                return str(xxh.hash64(argument.data))
+            else:
+                return str(xxhash.xxh64(argument.data))
         if type(argument) is pandas.core.frame.DataFrame:
             col_values_list = list(argument.columns.values)
             try:
                 col_values_string = ''.join(col_values_list)
                 arg_string = col_values_string
-                return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
+                if argument.values.size > 181440000:
+                    return str(xxh.hash64(argument.data)) + "+" + str(xxhash.xxh64(arg_string))
+                else:
+                    return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
             except:
-                return str(xxhash.xxh64(argument.values.data))
+                if argument.values.size > 181440000:
+                    return str(xxh.hash64(argument.data))
+                else:
+                    return str(xxhash.xxh64(argument.values.data))
         if type(argument) is list or type(argument) is tuple:
             arg_string = str(len(argument))
         arg_string += str(argument)
         return str(xxhash.xxh64(arg_string)) 
-
-
     
 class arrayMatchError(Exception):
     pass
