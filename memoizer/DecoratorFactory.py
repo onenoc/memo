@@ -47,12 +47,16 @@ class DecoratorFactory(object):
                 return f(*args, **kwargs)
             if self._verbose:
                 print "starting decorator"
-            (s_path, cachefilename, nocachefilename, tmp_filename) = self.__get_filename_hashes(f.__name__, args, kwargs)
+            (s_path, s_hash, cachefilename, nocachefilename, tmp_filename) = self.__get_filename_hashes(f.__name__, args, kwargs)
             try:
                 #rename to a tempfile, read from it, close it, and rename back
                 memoizedObject = self.__load_memoized_object(cachefilename, tmp_filename)
                 #handle return value
                 retval = memoizedObject.cache_object
+                if type(retval) is str and retval == "h5store":
+                    store = pandas.HDFStore(s_path + 'store.h5')
+                    retval = store['a'+s_hash]
+                    store.close()
                 memo_args = memoizedObject.args
                 #some % of the time, check to make sure calculated value 
                 #matches the pkl file value
@@ -89,8 +93,16 @@ class DecoratorFactory(object):
                 #calculate return value and log time
                 start_calc = time.time()
                 retval = f(*args, **kwargs)
-                memoizedObject = MemoizedObject(inspect.getsource(f), retval, args, kwargs)
+                    
                 calc_time = time.time() - start_calc
+                
+                if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000:
+                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store")
+                    store = pandas.HDFStore(s_path + 'store.h5')
+                    store['a'+s_hash] = retval
+                    store.close()
+                else:
+                    memoizedObject = MemoizedObject(inspect.getsource(f), retval)
                 tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
                 tmp_file.close()
@@ -135,13 +147,14 @@ class DecoratorFactory(object):
         s_hash = ''
         for argument in itertools.chain(args, kwargs):
             s_hash += self.__hash_from_argument(argument)
+        s_hash = str(xxhash.xxh64(s_hash))
         #get cache filename based on function name and arguments
         cachefilename = s_path + s_hash_funcname + s_hash + '.pkl'
         nocachefilename = s_path + s_hash_funcname + s_hash + "no" + ".pkl."
         tmp_filename = s_path + str(time.time()) + ".pkl"
         if self._verbose:
             print "cache filename is %s" % (cachefilename)
-        return (s_path, cachefilename, nocachefilename, tmp_filename)
+        return (s_path, s_hash_funcname + s_hash, cachefilename, nocachefilename, tmp_filename)
 
     def __indicate_no_memoization(self, s_path, cachefilename, nocachefilename):
         if self._verbose:
@@ -175,7 +188,7 @@ class DecoratorFactory(object):
                     return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
             except:
                 if argument.values.size > 181440000:
-                    return str(xxh.hash64(argument.data))
+                    return str(xxh.hash64(argument.values.data))
                 else:
                     return str(xxhash.xxh64(argument.values.data))
         if type(argument) is list or type(argument) is tuple:
@@ -184,8 +197,6 @@ class DecoratorFactory(object):
         return str(xxhash.xxh64(arg_string)) 
 
     def __load_memoized_object(self, cachefilename, tmp_filename):
-        print cachefilename
-        print tmp_filename
         os.rename(cachefilename, tmp_filename)
         if self._verbose:
             print "file already exists, reading from cache"
