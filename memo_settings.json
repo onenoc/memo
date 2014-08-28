@@ -1,1 +1,1 @@
-{"on": true, "frequency": 0.0, "bytes": 10485760000, "verbose": true}
+{"on": true, "verbose": true, "check_arguments": false, "bytes": 10485760000, "frequency": 0.0, "hash_function": "xxhash"}

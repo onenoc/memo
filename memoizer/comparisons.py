@@ -15,9 +15,6 @@ def compare_data_structures(value1, value2):
         return False
     if type(value1) is np.ndarray:
         return np.array_equal(value1, value2)
-        #h1 = hashlib.md5(value1.data).hexdigest()
-        #h2 = hashlib.md5(value2.data).hexdigest()
-        #return (h1==h2)
     elif type(value1) is list or type(value1) is tuple:
         if len(value1) != len(value2):
             return False

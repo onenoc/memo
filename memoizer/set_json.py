@@ -7,6 +7,7 @@ data['frequency'] = 0.0
 data['verbose'] = True
 data['on'] = True
 data['hash_function'] = 'xxhash'
+data['check_arguments'] = True
 
 with open(os.environ['JSONFILE'], 'w') as outfile:
     json.dump(data, outfile)

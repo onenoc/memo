@@ -22,7 +22,7 @@ from comparisons import compare_data_structures
 import inspect
 
 class DecoratorFactory(object):
-    def __init__(self, size, frequency, verbose=False, on=True, hash_function='xxhash'):
+    def __init__(self, size, frequency, verbose=False, on=True, hash_function='xxhash', check_arguments=False):
         '''
         @summary: constructor to set parameters
         @param size: how many bytes the scratch directory can take
@@ -31,11 +31,13 @@ class DecoratorFactory(object):
         @param verbose: print info at runtime
         @param on: turn memoization on or off globally
         '''
+
         self._size = size
         self._frequency = frequency
         self._verbose = verbose
         self._on = on
         self._hash_function = 'xxhash'
+        self._check_arguments = check_arguments
 
     def decorator(self, f):
         def wrapper(*args, **kwargs):
@@ -59,6 +61,17 @@ class DecoratorFactory(object):
                     retval = store['a'+s_hash]
                     store.close()
                 memo_args = memoizedObject.args
+                memo_kwargs = memoizedObject.kwargs
+                args_match = True
+                if self._check_arguments:
+                    if len(memo_args) > 0:
+                        args_match = compare_data_structures(args, memo_args)
+                    if len(memo_kwargs) > 0:
+                        kwargs_match = compare_data_structures(kwargs, memo_kwargs)
+                if self._verbose:
+                    print "args match and kwargs match are %s and %s" % (args_match, kwargs_match)
+                #depending on settings, check input arguments match stored arguments
+
                 #some % of the time, check to make sure calculated value 
                 #matches the pkl file value
                 if self._frequency != 0 and self._frequency <= 1 and randrange(1 / self._frequency)==0:
@@ -94,16 +107,18 @@ class DecoratorFactory(object):
                 #calculate return value and log time
                 start_calc = time.time()
                 retval = f(*args, **kwargs)
-                    
                 calc_time = time.time() - start_calc
+
+                memoize_args = args if self._check_arguments else []
+                memoize_kwargs = kwargs if self._check_arguments else []
                 
                 if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000:
-                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store")
+                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store", args=memoize_args, kwargs=memoize_kwargs)
                     store = pandas.HDFStore(s_path + 'store.h5')
                     store['a'+s_hash] = retval
                     store.close()
                 else:
-                    memoizedObject = MemoizedObject(inspect.getsource(f), retval)
+                    memoizedObject = MemoizedObject(inspect.getsource(f), retval, args=memoize_args, kwargs=memoize_kwargs)
                 tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
                 tmp_file.close()
