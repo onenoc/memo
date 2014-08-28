@@ -1,15 +1,14 @@
 memo
 ====
 
-NOTE: this library is in beta mode
-
 This is a memoizer class that you can use to decorate your functions so that they get cached to a file and run faster in future runs.
 
 To use, from the cloned folder, run<br>
 python setup.py install<br>
+pip install xxh<br>
 pip install xxhash<br>
 
-Next, add the folder MEMOData and setup an environment variable.  You can adding the following to your .bash_profile or .bashrc file<br>
+Next, add the folder MEMOData and setup an environment variable.  You can do this by creating a MEMOData folder in your home directory and adding the following to your .bash_profile or .bashrc file<br>
 export MEMODATA=$HOME/MEMOData<br>
 
 Then, in any file where you want to use it, add the following at the top:<br>
@@ -20,9 +19,7 @@ Then, above functions that you want to avoid recomputing on future runs, you dec
 def my_slow_function(arguments):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;slow code here<br>
   
-Also, in the DecoratorFactoryInstance, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library in this line:<br>
-factory=DecoratorFactory(bytes, frequency, verbosity=True, on=True)<br>
-
+Also, in the file set_json.py, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library.<br>
 Some notes:<br>
 -this package detects changes to the function definition, and in that case will delete and not return cached values
 -it also detects any case of rand in the function definition, and will not cache in that case.  However, there are other ways to inject randomness, so the user should be somewhat careful
