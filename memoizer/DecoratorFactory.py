@@ -22,7 +22,7 @@ from comparisons import compare_data_structures
 import inspect
 
 class DecoratorFactory(object):
-    def __init__(self, size, frequency, verbose=False, on=True):
+    def __init__(self, size, frequency, verbose=False, on=True, hash_function='xxhash'):
         '''
         @summary: constructor to set parameters
         @param size: how many bytes the scratch directory can take
@@ -35,6 +35,7 @@ class DecoratorFactory(object):
         self._frequency = frequency
         self._verbose = verbose
         self._on = on
+        self._hash_function = 'xxhash'
 
     def decorator(self, f):
         def wrapper(*args, **kwargs):
@@ -143,11 +144,11 @@ class DecoratorFactory(object):
 
     def __get_filename_hashes(self, s_funcname, args, kwargs):
         s_path = os.environ['MEMODATA'] + "/"
-        s_hash_funcname = str(xxhash.xxh64(s_funcname))
+        s_hash_funcname = self.__hash_choice(s_funcname)
         s_hash = ''
         for argument in itertools.chain(args, kwargs):
             s_hash += self.__hash_from_argument(argument)
-        s_hash = str(xxhash.xxh64(s_hash))
+        s_hash = self.__hash_choice(s_funcname)
         #get cache filename based on function name and arguments
         cachefilename = s_path + s_hash_funcname + s_hash + '.pkl'
         nocachefilename = s_path + s_hash_funcname + s_hash + "no" + ".pkl."
@@ -155,15 +156,12 @@ class DecoratorFactory(object):
         if self._verbose:
             print "cache filename is %s" % (cachefilename)
         return (s_path, s_hash_funcname + s_hash, cachefilename, nocachefilename, tmp_filename)
-
-    def __indicate_no_memoization(self, s_path, cachefilename, nocachefilename):
-        if self._verbose:
-            print "too slow or random, not caching"
-        tmp_create_nocachefilename = s_path + str(time.time())
-        tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
-        tmp_create_nocachefile.close()
-        os.rename(tmp_create_nocachefilename, nocachefilename)
-        os.remove(cachefilename)
+    
+    def __hash_choice(self, argument):
+        if self._hash_function == 'xxhash':
+            return str(xxhash.xxh64(argument))
+        else:
+            return hashlib.md5(argument).hexdigest()
 
     #this should use a try to see if we can hash it directly
     def __hash_from_argument(self, argument):
@@ -174,7 +172,7 @@ class DecoratorFactory(object):
             return argument.xxhash64
         if type(argument) is numpy.ndarray:
             if argument.size > 181440000:
-                return str(xxh.hash64(argument.data))
+                return self.__hash_choice(argument.data)
             else:
                 return str(xxhash.xxh64(argument.data))
         if type(argument) is pandas.core.frame.DataFrame:
@@ -185,16 +183,26 @@ class DecoratorFactory(object):
                 if argument.values.size > 181440000:
                     return str(xxh.hash64(argument.data)) + "+" + str(xxhash.xxh64(arg_string))
                 else:
-                    return str(xxhash.xxh64(argument.values.data)) + "+" + str(xxhash.xxh64(arg_string))
+                    return self.__hash_choice(argument.values.data) + "+" + str(xxhash.xxh64(arg_string))
             except:
                 if argument.values.size > 181440000:
                     return str(xxh.hash64(argument.values.data))
                 else:
-                    return str(xxhash.xxh64(argument.values.data))
+                    return self.__hash_choice(argument.values.data)
         if type(argument) is list or type(argument) is tuple:
             arg_string = str(len(argument))
         arg_string += str(argument)
-        return str(xxhash.xxh64(arg_string)) 
+        return self.__hash_choice(arg_string)
+
+    def __indicate_no_memoization(self, s_path, cachefilename, nocachefilename):
+        if self._verbose:
+            print "too slow or random, not caching"
+        tmp_create_nocachefilename = s_path + str(time.time())
+        tmp_create_nocachefile = open(tmp_create_nocachefilename, "wb")
+        tmp_create_nocachefile.close()
+        os.rename(tmp_create_nocachefilename, nocachefilename)
+        os.remove(cachefilename)
+
 
     def __load_memoized_object(self, cachefilename, tmp_filename):
         os.rename(cachefilename, tmp_filename)
