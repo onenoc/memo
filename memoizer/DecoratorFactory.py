@@ -63,10 +63,16 @@ class DecoratorFactory(object):
                 memo_args = memoizedObject.args
                 memo_kwargs = memoizedObject.kwargs
                 args_match = True
+                kwargs_match = True
                 if self._check_arguments:
+                    print "check arguments on"
                     if len(memo_args) > 0:
+                        if self._verbose:
+                            print "checking args"
                         args_match = compare_data_structures(args, memo_args)
                     if len(memo_kwargs) > 0:
+                        if self._verbose:
+                            print "checking kwargs"
                         kwargs_match = compare_data_structures(kwargs, memo_kwargs)
                 if self._verbose:
                     print "args match and kwargs match are %s and %s" % (args_match, kwargs_match)
