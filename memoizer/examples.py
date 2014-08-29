@@ -42,14 +42,16 @@ def compare_matrices_random(np_array_1, np_array_2):
 def return_same_array(np_array):
     return np_array
 
+@factory.decorator
 def mutate_args(li_list):
     for i in range(len(li_list)):
         li_list[i] = li_list[i] - 1
     return 1
 
 if __name__ == '__main__':
-    sleepy2(5)
-    
+    ls_list = [1, 2, 3]
+    mutate_args(ls_list)
+    print ls_list 
     '''
     @note: what we see is that for small values, fib_slow is actually faster.
     This likely is due to cache misses.  Thus, repeated calls involving cache

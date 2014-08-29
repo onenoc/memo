@@ -16,6 +16,7 @@ from MemoizedObject import MemoizedObject
 from random import randrange
 import xxhash
 import xxh
+import copy
 
 from comparisons import compare_data_structures
 
@@ -112,10 +113,23 @@ class DecoratorFactory(object):
                 if self._verbose:
                     print "creating pkl file"
                 #calculate return value and log time
+                args_copy = []
+                kwargs_copy = []
+                if self._check_mutation:
+                    args_copy = copy.deepcopy(args)
+                    kwargs_copy = copy.deepcopy(kwargs)
                 start_calc = time.time()
                 retval = f(*args, **kwargs)
                 calc_time = time.time() - start_calc
-
+                args_unmutated = True
+                kwargs_unmutated = True
+                if self._check_mutation:
+                    args_unmutated = compare_data_structures(args, args_copy)
+                    kwargs_unmutated = compare_data_structures(kwargs, kwargs_copy)
+                if args_unmutated is False or kwargs_unmutated is False:
+                    print "mutates argument, not memoizing"
+                    return f(*args, **kwargs)
+                
                 memoize_args = args if self._check_arguments else []
                 memoize_kwargs = kwargs if self._check_arguments else []
                 
