@@ -21,7 +21,7 @@ def my_slow_function(arguments):<br>
   
 Also, in the file set_json.py, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library.<br>
 Some notes:<br>
--this package detects changes to the function definition, and in that case will delete and not return cached values
+-this package detects changes to the function definition, and in that case will delete and not return cached values<br>
 -it also detects any case of rand in the function definition, and will not cache in that case.  However, there are other ways to inject randomness, so the user should be somewhat careful
 
 <b>Examples (Thanks Jon O'Bryan):</b><br>
