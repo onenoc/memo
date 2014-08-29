@@ -4,7 +4,7 @@ import os
 data = {}
 data['bytes'] = 419430400*25
 data['frequency'] = 0.0
-data['verbose'] = True
+data['verbose'] = False
 data['on'] = True
 data['hash_function'] = 'xxhash'
 data['check_arguments'] = True

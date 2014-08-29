@@ -67,7 +67,8 @@ class DecoratorFactory(object):
                 args_match = True
                 kwargs_match = True
                 if self._check_arguments:
-                    print "argument checking on"
+                    if self._verbose:
+                        print "argument checking on"
                     if len(memo_args) > 0:
                         if self._verbose:
                             print "checking args"
