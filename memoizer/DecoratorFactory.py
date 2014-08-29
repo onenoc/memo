@@ -22,7 +22,7 @@ from comparisons import compare_data_structures
 import inspect
 
 class DecoratorFactory(object):
-    def __init__(self, size, frequency, verbose=False, on=True, hash_function='xxhash', check_arguments=False):
+    def __init__(self, size, frequency, verbose=False, on=True, hash_function='xxhash', check_arguments=False, check_mutation=False):
         '''
         @summary: constructor to set parameters
         @param size: how many bytes the scratch directory can take
@@ -38,6 +38,7 @@ class DecoratorFactory(object):
         self._on = on
         self._hash_function = 'xxhash'
         self._check_arguments = check_arguments
+        self._check_mutation = check_mutation
 
     def decorator(self, f):
         def wrapper(*args, **kwargs):
@@ -65,7 +66,7 @@ class DecoratorFactory(object):
                 args_match = True
                 kwargs_match = True
                 if self._check_arguments:
-                    print "check arguments on"
+                    print "argument checking on"
                     if len(memo_args) > 0:
                         if self._verbose:
                             print "checking args"
@@ -74,8 +75,8 @@ class DecoratorFactory(object):
                         if self._verbose:
                             print "checking kwargs"
                         kwargs_match = compare_data_structures(kwargs, memo_kwargs)
-                if self._verbose:
-                    print "args match and kwargs match are %s and %s" % (args_match, kwargs_match)
+                if args_match is False or kwargs_match is False:
+                    print "warning, arguments don't match"
                 #depending on settings, check input arguments match stored arguments
 
                 #some % of the time, check to make sure calculated value 
@@ -106,7 +107,7 @@ class DecoratorFactory(object):
                 try:
                     self.__find_nocachefile(nocachefilename, s_path)
                     return f(*args, **kwargs)
-                except (OSError, IOError) as e:
+                except (OSError, IOError, argMatchError) as e:
                     pass
                 if self._verbose:
                     print "creating pkl file"
@@ -119,7 +120,7 @@ class DecoratorFactory(object):
                 memoize_kwargs = kwargs if self._check_arguments else []
                 
                 if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000:
-                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store", args=memoize_args, kwargs=memoize_kwargs)
+                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store")
                     store = pandas.HDFStore(s_path + 'store.h5')
                     store['a'+s_hash] = retval
                     store.close()
@@ -169,7 +170,7 @@ class DecoratorFactory(object):
         s_hash = ''
         for argument in itertools.chain(args, kwargs):
             s_hash += self.__hash_from_argument(argument)
-        s_hash = self.__hash_choice(s_funcname)
+        s_hash = self.__hash_choice(s_hash)
         #get cache filename based on function name and arguments
         cachefilename = s_path + s_hash_funcname + s_hash + '.pkl'
         nocachefilename = s_path + s_hash_funcname + s_hash + "no" + ".pkl."
@@ -280,5 +281,5 @@ class DecoratorFactory(object):
         nocachefile_tmp_file.close()
         os.rename(nocachefile_tmp_filename, nocachefilename)
     
-class arrayMatchError(Exception):
+class argMatchError(Exception):
     pass
