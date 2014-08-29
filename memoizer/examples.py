@@ -16,6 +16,7 @@ def sleepy(x):
 
 @factory.decorator
 def sleepy2(x):
+    time.sleep(5)
     return x
 
 def fib_slow(n):
@@ -49,9 +50,7 @@ def mutate_args(li_list):
     return 1
 
 if __name__ == '__main__':
-    ls_list = [1, 2, 3]
-    mutate_args(ls_list)
-    print ls_list 
+    print sleepy2(10)
     '''
     @note: what we see is that for small values, fib_slow is actually faster.
     This likely is due to cache misses.  Thus, repeated calls involving cache
