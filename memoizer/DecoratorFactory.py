@@ -31,6 +31,9 @@ class DecoratorFactory(object):
         probability we use memoization if cache file found
         @param verbose: print info at runtime
         @param on: turn memoization on or off globally
+        @param hash_function: which hash function do we use?
+        @param check_arguments: do we check for hash collisions?
+        @param check_mutation: do we check for argument mutations?
         '''
 
         self._size = size
@@ -52,7 +55,9 @@ class DecoratorFactory(object):
                 return f(*args, **kwargs)
             if self._verbose:
                 print "starting decorator"
+            start_hash_calc = time.time()
             (s_path, s_hash, cachefilename, nocachefilename, tmp_filename) = self.__get_filename_hashes(f.__name__, args, kwargs)
+            hash_calc_time = time.time() - start_hash_calc
             try:
                 #rename to a tempfile, read from it, close it, and rename back
                 memoizedObject = self.__load_memoized_object(cachefilename, tmp_filename)
@@ -66,6 +71,7 @@ class DecoratorFactory(object):
                 memo_kwargs = memoizedObject.kwargs
                 args_match = True
                 kwargs_match = True
+                start = time.time()
                 if self._check_arguments:
                     if self._verbose:
                         print "argument checking on"
@@ -77,6 +83,7 @@ class DecoratorFactory(object):
                         if self._verbose:
                             print "checking kwargs"
                         kwargs_match = compare_data_structures(kwargs, memo_kwargs)
+                print "argcheck time is %f" % (time.time() - start)
                 if args_match is False or kwargs_match is False:
                     print "warning, arguments don't match"
                 #depending on settings, check input arguments match stored arguments
@@ -104,6 +111,7 @@ class DecoratorFactory(object):
                     pass
                 retval = f(*args, **kwargs)
             except (OSError, IOError) as e:
+                #cache miss
                 if self._verbose:
                     print "file not found"
                 try:
@@ -120,7 +128,61 @@ class DecoratorFactory(object):
                     args_copy = copy.deepcopy(args)
                     kwargs_copy = copy.deepcopy(kwargs)
                 start_calc = time.time()
-                retval = f(*args, **kwargs)
+                dont_read = 0
+                if 'divide_conquer' in kwargs:
+                    dont_read = 1
+                    print "memo divide and conquer"
+                    #find and print all cases of this function use
+                    s_hash_funcname = self.__hash_choice(f.__name__)
+                    i_max_size = 0
+                    l_dc_ret = []
+                    ls_series_ix = []
+                    ls_dc_series_ix = []
+                    for s_file in os.listdir(s_path):
+                        if s_hash_funcname in s_file and "no" not in s_file:
+                            cache_dc_filename = s_path+s_file
+                            tmp_dc_filename = s_path+str(time.time())+'.pkl'
+                            dcObject = self.__load_memoized_object(cache_dc_filename, tmp_dc_filename)
+                            #we're comparing to current, so we may not have memoized obj
+                            lpd_data = args[0]
+                            ldt_dates = args[1]
+                            ls_series_ix = lpd_data[0].columns.values 
+                            lpd_dc_data = dcObject.args[0]
+                            ldt_dc_dates = dcObject.args[1]
+                            ls_dc_series_ix = lpd_dc_data[0].columns.values
+                            #do we need to include frequency in order to figure out size of subproblem?
+                            #we don't know that the solved subproblem will return a full sized matrix
+                            #we could calculate frequency from the input matrix
+                            date_subset = 0
+                            #check if date range in old object a subset of date range in current
+                            ix_subset = 0
+                            if ldt_dates[0]<=ldt_dc_dates[0]<=ldt_dc_dates[1]<=ldt_dates[1]:
+                                date_subset = 1
+                            else:
+                                print "date not subset"
+                            #check if indices a subset
+                            if set(ls_dc_series_ix).issubset(ls_series_ix):
+                                ix_subset = 1
+                            else:
+                                print "index not subset"
+                                print ls_dc_series_ix, ls_series_ix
+                            if date_subset+ix_subset==2 and len(ls_dc_series_ix)*len(ldt_dc_dates) > i_max_size:
+                                print "subproblem found"
+                                i_max_size = len(ls_dc_series_ix)*len(ldt_dc_dates)
+                                l_dc_ret = [dcObject.cache_object]
+                    #check their arguments, particularly dates
+                    #always save args and kwargs in this case
+                    self._check_arguments = True
+                    #s_path + s_hash_funcname
+                    if len(l_dc_ret) > 0:
+                        retval = f(lpd_data, ldt_dates, l_dc_ret=l_dc_ret, ldt_dc_dates=ldt_dc_dates, ls_dc_indices=ls_dc_series_ix, divide_conquer=1)
+                    else:
+                        print "none are subproblems"
+                        retval = f(*args, **kwargs)
+                #have to handle the NO MEMO CASE!
+                else:
+                    print "not a dc problem"
+                    retval = f(*args, **kwargs)
                 calc_time = time.time() - start_calc
                 args_unmutated = True
                 kwargs_unmutated = True
@@ -141,21 +203,25 @@ class DecoratorFactory(object):
                     store.close()
                 else:
                     memoizedObject = MemoizedObject(inspect.getsource(f), retval, args=memoize_args, kwargs=memoize_kwargs)
+                start = time.time()
                 tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
+                print "post calc time is %f" % (time.time() - start)
                 tmp_file.close()
                 os.rename(tmp_filename, cachefilename)
                 os.chmod(cachefilename, 0666)
                 #rename to a tempfile, read from it, close it, and rename back
-                os.rename(cachefilename, tmp_filename)
-                #read from cache and log time
-                start_read = time.time()
-                tmp_file = open(tmp_filename, "rb")
-                test_retval = pkl.load(tmp_file)
-                os.fsync(tmp_file)
-                tmp_file.close()
-                read_time = time.time() - start_read
-                os.rename(tmp_filename, cachefilename)
+                read_time = 0
+                if dont_read==0:
+                    os.rename(cachefilename, tmp_filename)
+                    #read from cache and log time
+                    start_read = time.time()
+                    tmp_file = open(tmp_filename, "rb")
+                    test_retval = pkl.load(tmp_file)
+                    os.fsync(tmp_file)
+                    tmp_file.close()
+                    read_time = time.time() - start_read
+                    os.rename(tmp_filename, cachefilename)
                 #detect use of randomization
                 random = self.__detect_randomization(f)
                 #if the cache time is slower than the calculate time,

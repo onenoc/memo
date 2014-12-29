@@ -7,7 +7,7 @@ data['frequency'] = 0.0
 data['verbose'] = False
 data['on'] = True
 data['hash_function'] = 'xxhash'
-data['check_arguments'] = True
+data['check_arguments'] = False
 data['check_mutation'] = False
 
 with open(os.environ['JSONFILE'], 'w') as outfile:

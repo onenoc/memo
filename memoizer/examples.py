@@ -49,8 +49,12 @@ def mutate_args(li_list):
         li_list[i] = li_list[i] - 1
     return 1
 
+@factory.decorator
+def test_no_memo(no_memoize=1):
+    return 5
+
 if __name__ == '__main__':
-    print sleepy2(10)
+    test_no_memo(no_memoize=1)
     '''
     @note: what we see is that for small values, fib_slow is actually faster.
     This likely is due to cache misses.  Thus, repeated calls involving cache
