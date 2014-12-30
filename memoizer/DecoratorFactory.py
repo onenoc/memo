@@ -6,7 +6,7 @@ a single file easily.
 '''
 import hashlib
 import os
-import pickle as pkl
+import cPickle as pkl
 import time
 import random
 import itertools
@@ -144,12 +144,13 @@ class DecoratorFactory(object):
                             tmp_dc_filename = s_path+str(time.time())+'.pkl'
                             dcObject = self.__load_memoized_object(cache_dc_filename, tmp_dc_filename)
                             #we're comparing to current, so we may not have memoized obj
-                            lpd_data = args[0]
+                            pd_data = args[0]
                             ldt_dates = args[1]
-                            ls_series_ix = lpd_data[0].columns.values 
-                            lpd_dc_data = dcObject.args[0]
+                            ls_series_ix = pd_data.columns.values 
+                            pd_dc_data = dcObject.args[0]
                             ldt_dc_dates = dcObject.args[1]
-                            ls_dc_series_ix = lpd_dc_data[0].columns.values
+                            #this won't work when return value is non data frame
+                            ls_dc_series_ix = pd_dc_data.columns.values
                             #do we need to include frequency in order to figure out size of subproblem?
                             #we don't know that the solved subproblem will return a full sized matrix
                             #we could calculate frequency from the input matrix
@@ -175,7 +176,9 @@ class DecoratorFactory(object):
                     self._check_arguments = True
                     #s_path + s_hash_funcname
                     if len(l_dc_ret) > 0:
-                        retval = f(lpd_data, ldt_dates, l_dc_ret=l_dc_ret, ldt_dc_dates=ldt_dc_dates, ls_dc_indices=ls_dc_series_ix, divide_conquer=1)
+                        start = time.time()
+                        retval = f(pd_data, ldt_dates, l_dc_ret=l_dc_ret, ldt_dc_dates=ldt_dc_dates, ls_dc_indices=ls_dc_series_ix, divide_conquer=1)
+                        print time.time() - start
                     else:
                         print "none are subproblems"
                         retval = f(*args, **kwargs)
@@ -192,15 +195,16 @@ class DecoratorFactory(object):
                 if args_unmutated is False or kwargs_unmutated is False:
                     print "mutates argument, not memoizing"
                     return f(*args, **kwargs)
-                
                 memoize_args = args if self._check_arguments else []
-                memoize_kwargs = kwargs if self._check_arguments else []
-                
+                memoize_kwargs = kwargs if self._check_arguments and 'divide_conquer' not in kwargs else []
                 if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000:
                     memoizedObject = MemoizedObject(inspect.getsource(f), "h5store")
                     store = pandas.HDFStore(s_path + 'store.h5')
                     store['a'+s_hash] = retval
                     store.close()
+                elif 'divide_conquer' in kwargs and type(retval) is pandas.core.frame.DataFrame:
+                    memoizedObject = MemoizedObject(inspect.getsource(f), "hdf_fixed", args=memoize_args, kwargs=memoize_kwargs)
+                    retval.to_hdf(s_path+s_hash+'ret.hdf', 'rets', mode='w')
                 else:
                     memoizedObject = MemoizedObject(inspect.getsource(f), retval, args=memoize_args, kwargs=memoize_kwargs)
                 start = time.time()

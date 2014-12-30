@@ -9,21 +9,29 @@ from pandas.util.testing import assert_frame_equal
 from memoizer.DecoratorFactoryInstance import factory
 
 @factory.decorator
-def sort_dc(lpd_data, ldt_dates, l_dc_ret="", ldt_dc_dates="", ls_dc_indices="", divide_conquer=0):
+def sort_dc(pd_data, ldt_dates, l_dc_ret="", ldt_dc_dates="", ls_dc_indices="", divide_conquer=0):
     start = time.time()
-    pd_series = lpd_data[0][lpd_data[0].columns.values[0]]
+    pd_series = pd_data[pd_data.columns.values[0]]
     dt_start = ldt_dates[0]
     dt_end = ldt_dates[-1]
+    print "within function"
     if divide_conquer==1:
         dt_dc_start = ldt_dc_dates[0]
         dt_dc_end = ldt_dc_dates[-1]
+        i1 = pd_data.index.get_loc(dt_dc_end)+1
+        i2 = pd_data.index.get_loc(dt_end)
         pd_dc_series = l_dc_ret[0][l_dc_ret[0].columns.values[0]]
+        print time.time()-start
         s1 = pd_dc_series
-        s2 = pd_series[dt_dc_end+2:dt_end]
-        s = pd.concat([s1, s2])
+        s2 = pd_series.iloc[i1:i2]
+        #s2 = pd_series[dt_dc_start:dt_dc_end]
+        print time.time() - start
+        s= pd.concat([s1, s2])
+        start = time.time()
         s.sort()
-        print "divide conquer"
-        return pd.DataFrame(s, columns=['s1'])
+        print "actual sort time"
+        print time.time() - start
+        return s
     else:
         s1 = pd_series.copy()
         s1.sort()
@@ -50,15 +58,16 @@ if __name__ == '__main__':
     #we need to get the start and end date when we return a dataframe, since we can't simply take first and last element anymore
     #what you get in current version is that your main series argument is not ordered by date in a big chunk
     #here is what we will need actually
-    n=20000000
+    n=10000000
     rng = pd.date_range('1/1/2011', periods=2*n, freq='s') 
+    #rng = [i for i in rng] 
     s1 = pd.Series(np.random.randn(n), index=rng[0:n])
     s2 = pd.Series(np.random.randn(n), index=rng[n:2*n])
     s = pd.concat([s1, s2])
     s1 = pd.DataFrame(s1, columns=['s1'])
     s = pd.DataFrame(s, columns=['s1'])
     start = time.time()
-    sort_dc([s1], rng[0:n], divide_conquer=0)
+    sort_dc(s1, rng[0:n], divide_conquer=0)
     print time.time() - start
     start = time.time()
     s1['s1'].copy().sort()
@@ -66,7 +75,7 @@ if __name__ == '__main__':
     time.sleep(3)
     start = time.time()
     print s.columns.values
-    sort_dc([s], rng, divide_conquer=0)
+    sort_dc(s, rng, divide_conquer=0)
     print time.time() - start
     start = time.time()
     s['s1'].copy().sort()

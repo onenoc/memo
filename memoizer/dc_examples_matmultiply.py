@@ -9,9 +9,22 @@ from pandas.util.testing import assert_frame_equal
 from memoizer.DecoratorFactoryInstance import factory
 
 @factory.decorator
-def mat_transpose_multiply(lpd_data, ldt_dates, l_dc_ret="", ldt_dc_dates="", ls_dc_indices="", divide_conquer=0):
-#convert matrix to numpy array
-
+def mat_transpose_multiply(pd_data, ldt_dates, l_dc_ret="", ldt_dc_dates="", ls_dc_indices="", divide_conquer=0):
+    if divide_conquer==1:
+        pd_dc_dataframe = l_dc_ret[0]
+        dt_end = ldt_dates[-1]
+        dt_dc_end = ldt_dc_dates[-1]
+        np_1 = l_dc_ret[0]
+        start = time.time()
+        df_2 = pd_data[dt_dc_end+1:dt_end]
+        print "indexing time is %f" % (time.time() - start)
+        np_2 = df_2.values
+        retval= np_1+np.dot(np.transpose(np_2), np_2)
+        return retval
+    else:
+        np_matrix = pd_data.values
+        return np.dot(np.transpose(np_matrix), np_matrix)
+    '''
     start = time.time()
     pd_series = lpd_data[0][lpd_data[0].columns.values[0]]
     print "extra overhead time %f" % (time.time() - start)
@@ -34,45 +47,28 @@ def mat_transpose_multiply(lpd_data, ldt_dates, l_dc_ret="", ldt_dc_dates="", ls
         s1.sort()
         print "full computation"
         return s1
+    '''
+
+def mat_transpose_mult_simple(pd_data):
+    np_matrix = pd_data.values
+    return np.dot(np.transpose(np_matrix), np_matrix)
 
 if __name__ == '__main__':
-    '''
-    n=5
-    rng = pd.date_range('1/1/2011', periods=2*n, freq='s') 
-    s1 = pd.Series(np.random.randn(n), index=rng[0:n])
-    s2 = pd.Series(np.random.randn(n), index=rng[n:2*n])
-    s = pd.concat([s1, s2])
-    s1.sort()
+    n=500
+    t=200000
+    rng = pd.date_range('1/1/2011', periods=2*t, freq='s') 
+    np_1 = np.random.rand(t, n)
+    np_2 = np.random.rand(t, n)
+    df_1 = pd.DataFrame(np_1, index=rng[0:t], columns=range(n))
+    df_2 = pd.DataFrame(np_2, index=rng[t:2*t], columns=range(n))
+    df_full = pd.concat([df_1, df_2])
     start = time.time()
-    s_full = sort_dc([s], rng)
-    print time.time()-start
+    r1 = mat_transpose_multiply(df_1, rng[0:t], divide_conquer=0)
     start = time.time()
-    s_subproblem = sort_dc([s], rng, l_dc_ret=[s1], ldt_dc_dates=rng[0:n-1],divide_conquer=1)
-    print time.time()-start
-    print (s_full==s_subproblem).all()
-    '''
-    #mixing up dates creates a huge mess so that slicing by date doesn't work, have to slice by position, probably using .iloc or .ix
-    #we need to get the start and end date when we return a dataframe, since we can't simply take first and last element anymore
-    #what you get in current version is that your main series argument is not ordered by date in a big chunk
-    #here is what we will need actually
-    n=10000000
-    rng = pd.date_range('1/1/2011', periods=2*n, freq='s') 
-    s1 = pd.Series(np.random.randn(n), index=rng[0:n])
-    s2 = pd.Series(np.random.randn(n), index=rng[n:2*n])
-    s = pd.concat([s1, s2])
-    s1 = pd.DataFrame(s1, columns=['s1'])
-    s = pd.DataFrame(s, columns=['s1'])
-    start = time.time()
-    sort_dc([s1], rng[0:n], divide_conquer=0)
+    #mat_transpose_multiply(df_full, rng, l_dc_ret=[r1], ldt_dc_dates=rng[0:t], divide_conquer=1)
+    mat_transpose_multiply(df_full, rng, divide_conquer=0)
     print time.time() - start
     start = time.time()
-    s1['s1'].copy().sort()
+    mat_transpose_mult_simple(df_full)
     print time.time() - start
-    time.sleep(3)
-    start = time.time()
-    print s.columns.values
-    sort_dc([s], rng, divide_conquer=0)
-    print time.time() - start
-    start = time.time()
-    s['s1'].copy().sort()
-    print time.time() - start
+
