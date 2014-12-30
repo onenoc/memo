@@ -165,8 +165,6 @@ class DecoratorFactory(object):
                                 print "subproblem found"
                                 i_max_size = len(ls_dc_series_ix)*len(ldt_dc_dates)
                                 l_dc_ret = [dcObject.cache_object]
-                                #if dcObject.cache_object=="hdf_fixed":
-                                #    l_dc_ret = pandas.read_hdf(s_path+s_file.replace('.pkl', 'ret.hdf'), 'rets')
                                 if type(dcObject.cache_object) is str and dcObject.cache_object == "h5store":
                                     store = pandas.HDFStore(s_path + 'store.h5')
                                     l_dc_ret = [store['a'+s_file.replace('.pkl', '')]]
