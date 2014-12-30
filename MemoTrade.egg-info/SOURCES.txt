@@ -10,6 +10,7 @@ memoizer/SubClasses.py
 memoizer/__init__.py
 memoizer/comparisons.py
 memoizer/dc_examples_matmultiply.py
+memoizer/dc_examples_max.py
 memoizer/dc_examples_sorting.py
 memoizer/examples.py
 memoizer/flush_cache.py

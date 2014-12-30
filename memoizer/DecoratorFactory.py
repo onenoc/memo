@@ -131,7 +131,6 @@ class DecoratorFactory(object):
                 dont_read = 0
                 if 'divide_conquer' in kwargs:
                     dont_read = 1
-                    print "memo divide and conquer"
                     #find and print all cases of this function use
                     s_hash_funcname = self.__hash_choice(f.__name__)
                     i_max_size = 0
@@ -159,18 +158,19 @@ class DecoratorFactory(object):
                             ix_subset = 0
                             if ldt_dates[0]<=ldt_dc_dates[0]<=ldt_dc_dates[1]<=ldt_dates[1]:
                                 date_subset = 1
-                            else:
-                                print "date not subset"
                             #check if indices a subset
                             if set(ls_dc_series_ix).issubset(ls_series_ix):
                                 ix_subset = 1
-                            else:
-                                print "index not subset"
-                                print ls_dc_series_ix, ls_series_ix
                             if date_subset+ix_subset==2 and len(ls_dc_series_ix)*len(ldt_dc_dates) > i_max_size:
                                 print "subproblem found"
                                 i_max_size = len(ls_dc_series_ix)*len(ldt_dc_dates)
                                 l_dc_ret = [dcObject.cache_object]
+                                #if dcObject.cache_object=="hdf_fixed":
+                                #    l_dc_ret = pandas.read_hdf(s_path+s_file.replace('.pkl', 'ret.hdf'), 'rets')
+                                if type(dcObject.cache_object) is str and dcObject.cache_object == "h5store":
+                                    store = pandas.HDFStore(s_path + 'store.h5')
+                                    l_dc_ret = [store['a'+s_file.replace('.pkl', '')]]
+                                    store.close()
                     #check their arguments, particularly dates
                     #always save args and kwargs in this case
                     self._check_arguments = True
@@ -197,17 +197,19 @@ class DecoratorFactory(object):
                     return f(*args, **kwargs)
                 memoize_args = args if self._check_arguments else []
                 memoize_kwargs = kwargs if self._check_arguments and 'divide_conquer' not in kwargs else []
-                if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000:
-                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store")
+                #if type(memoize_kwargs[0]) is pandas.core.frame.DataFrame:
+                #    memoize_kwargs[0]="hdf_fixed"
+                start = time.time()
+                if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000 or 'divide_conquer' in kwargs:
                     store = pandas.HDFStore(s_path + 'store.h5')
                     store['a'+s_hash] = retval
                     store.close()
-                elif 'divide_conquer' in kwargs and type(retval) is pandas.core.frame.DataFrame:
-                    memoizedObject = MemoizedObject(inspect.getsource(f), "hdf_fixed", args=memoize_args, kwargs=memoize_kwargs)
-                    retval.to_hdf(s_path+s_hash+'ret.hdf', 'rets', mode='w')
+                    memoizedObject = MemoizedObject(inspect.getsource(f), "h5store", args=memoize_args, kwargs=memoize_kwargs)
+                    #if type(args[0]) is pandas.core.frame.DataFrame:
+                    #    args[0].to_hdf(s_path+s_hash+'args.hdf', 'args', mode='w')
                 else:
+                    print "else normal memo"
                     memoizedObject = MemoizedObject(inspect.getsource(f), retval, args=memoize_args, kwargs=memoize_kwargs)
-                start = time.time()
                 tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
                 print "post calc time is %f" % (time.time() - start)

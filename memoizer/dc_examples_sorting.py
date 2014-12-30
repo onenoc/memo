@@ -14,7 +14,6 @@ def sort_dc(pd_data, ldt_dates, l_dc_ret="", ldt_dc_dates="", ls_dc_indices="", 
     pd_series = pd_data[pd_data.columns.values[0]]
     dt_start = ldt_dates[0]
     dt_end = ldt_dates[-1]
-    print "within function"
     if divide_conquer==1:
         dt_dc_start = ldt_dc_dates[0]
         dt_dc_end = ldt_dc_dates[-1]
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     #we need to get the start and end date when we return a dataframe, since we can't simply take first and last element anymore
     #what you get in current version is that your main series argument is not ordered by date in a big chunk
     #here is what we will need actually
-    n=10000000
+    n=20000000
     rng = pd.date_range('1/1/2011', periods=2*n, freq='s') 
     #rng = [i for i in rng] 
     s1 = pd.Series(np.random.randn(n), index=rng[0:n])
