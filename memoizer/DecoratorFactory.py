@@ -137,6 +137,7 @@ class DecoratorFactory(object):
                     l_dc_ret = []
                     ls_series_ix = []
                     ls_dc_series_ix = []
+                    s_final_file = ""
                     for s_file in os.listdir(s_path):
                         if s_hash_funcname in s_file and "no" not in s_file:
                             cache_dc_filename = s_path+s_file
@@ -164,19 +165,29 @@ class DecoratorFactory(object):
                             if date_subset+ix_subset==2 and len(ls_dc_series_ix)*len(ldt_dc_dates) > i_max_size:
                                 print "subproblem found"
                                 i_max_size = len(ls_dc_series_ix)*len(ldt_dc_dates)
-                                l_dc_ret = [dcObject.cache_object]
-                                if type(dcObject.cache_object) is str and dcObject.cache_object == "h5store":
-                                    store = pandas.HDFStore(s_path + 'store.h5')
-                                    l_dc_ret = [store['a'+s_file.replace('.pkl', '')]]
-                                    store.close()
+                                s_final_file = s_file
+                    #move this outside so we aren't doing it repeatedly, maxsize as well
                     #check their arguments, particularly dates
                     #always save args and kwargs in this case
                     self._check_arguments = True
                     #s_path + s_hash_funcname
-                    if len(l_dc_ret) > 0:
-                        start = time.time()
+                    if i_max_size>0:
+                        cache_dc_filename = s_path+s_final_file
+                        tmp_dc_filename = s_path+str(time.time())+'.pkl'
+                        dcObject = self.__load_memoized_object(cache_dc_filename, tmp_dc_filename)
+                        #we're comparing to current, so we may not have memoized obj
+                        pd_data = args[0]
+                        ldt_dates = args[1]
+                        ls_series_ix = pd_data.columns.values 
+                        pd_dc_data = dcObject.args[0]
+                        ldt_dc_dates = dcObject.args[1]
+                        #this won't work when return value is non data frame
+                        ls_dc_series_ix = pd_dc_data.columns.values
+                        if i_max_size>0 and type(dcObject.cache_object) is str and dcObject.cache_object == "h5store":
+                            store = pandas.HDFStore(s_path + 'store.h5')
+                            l_dc_ret = [store['a'+s_final_file.replace('.pkl', '')]]
+                            store.close()
                         retval = f(pd_data, ldt_dates, l_dc_ret=l_dc_ret, ldt_dc_dates=ldt_dc_dates, ls_dc_indices=ls_dc_series_ix, divide_conquer=1)
-                        print time.time() - start
                     else:
                         print "none are subproblems"
                         retval = f(*args, **kwargs)
@@ -199,6 +210,7 @@ class DecoratorFactory(object):
                 #    memoize_kwargs[0]="hdf_fixed"
                 start = time.time()
                 if type(retval) is pandas.core.frame.DataFrame and retval.values.size > 181440000 or 'divide_conquer' in kwargs:
+                    print "storing hdfs"
                     store = pandas.HDFStore(s_path + 'store.h5')
                     store['a'+s_hash] = retval
                     store.close()
@@ -206,11 +218,11 @@ class DecoratorFactory(object):
                     #if type(args[0]) is pandas.core.frame.DataFrame:
                     #    args[0].to_hdf(s_path+s_hash+'args.hdf', 'args', mode='w')
                 else:
-                    print "else normal memo"
+                    print "normal not hdfs"
                     memoizedObject = MemoizedObject(inspect.getsource(f), retval, args=memoize_args, kwargs=memoize_kwargs)
                 tmp_file = open(tmp_filename, "wb")
                 pkl.dump(memoizedObject, tmp_file, -1)
-                print "post calc time is %f" % (time.time() - start)
+                #print "post calc time is %f" % (time.time() - start)
                 tmp_file.close()
                 os.rename(tmp_filename, cachefilename)
                 os.chmod(cachefilename, 0666)

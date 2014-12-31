@@ -64,6 +64,7 @@ if __name__ == '__main__':
     df_full = pd.concat([df_1, df_2])
     start = time.time()
     r1 = mat_transpose_multiply(df_1, rng[0:t], divide_conquer=0)
+    print time.time()
     start = time.time()
     #mat_transpose_multiply(df_full, rng, l_dc_ret=[r1], ldt_dc_dates=rng[0:t], divide_conquer=1)
     mat_transpose_multiply(df_full, rng, divide_conquer=0)
