@@ -3,17 +3,22 @@ memo
 
 This is a memoizer class that you can use to decorate your functions so that they get cached to a file and run faster in future runs.
 
-To use, from the cloned folder, run<br>
+<h1>Installation</h1>
+To get started, run<br>
+git clone git@github.com:onenoc/memo.git<br>
+cd memo<br>
 python setup.py install<br>
 pip install xxh<br>
 pip install xxhash<br>
 
+<h2> Setup </h2>
 Next, add the folder MEMOData and setup an environment variable.  You can do this by creating a MEMOData folder in your home directory and adding the following to your .bash_profile or .bashrc file<br>
 export MEMODATA=$HOME/MEMOData<br>
 
 Then, in any file where you want to use it, add the following at the top:<br>
 from memoizer.DecoratorFactoryInstance import factory<br>
 
+<h1> Usage </h1>
 Then, above functions that you want to avoid recomputing on future runs, you decorate using @factory.decorator.  For instance:<br>
 @factory.decorator<br>
 def my_slow_function(arguments):<br>
@@ -47,5 +52,18 @@ def fib(n):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;if n < 2:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n<br>
 &nbsp;&nbsp;&nbsp;&nbsp;return fib(n - 2) + fib(n - 1)<br>
+
+<h1> Features </h1>
+<h2> Deterministic vs Non-Deterministic Functions </h2>
+Deterministic functions, given some arguments, will always return the same value. Nondeterministic functions may not. Nondeterministic functions include functions that use randomization, read from a database or file that may change, or depend on the current time. When memoizing, we check the function definition as a string to make sure that it does not include rand or time as substrings, and that the function definition has not changed, but beyond that, taking care to avoid memoizing nondeterministic functions is left to the user. If we determine that it is a nondeterministic function based on rand or time, we do not memoize it and create a file to indicate not to memoize it in the future.
+
+<h2> Checking Whether Memoizing Saves Time </h2>
+When memoizing, we log the time to compute the function return value and compare it to the time to read from the file we’ve memoized to. If the computation time is faster, we delete the file and create the no memoization file. This makes the first memoization we do slightly slower than some competing packages.
+
+<h2> Large Dataframes </h2>
+Pickle fails to serialize large dataframes, generally in excess of a gigabyte. For these,we use the pandas call to pytables, which allows HDFStore and handling of far larger objects, although HDFStore currently only supports storing a few object types.
+
+<h2> Fast Hashing </h2>
+Competing packages use md5 for hashing. Md5 is a cryptographic hash, which means that it is designed to make collisions difficult to find even for malicious input. Noncryptographic hashes are faster and make collisions unlikely only for non-malicious input. This means that it’s easy to generate a collision if one studies the hash function, but unlikely otherwise.  We give the user the option of using xxhash 64, a noncryptographic hash function that is much faster than md5 (https://github.com/Cyan4973/xxHash)
 
 Developed by Alexander Moreno under the supervision of Professor Tucker Balch, Georgia Tech
