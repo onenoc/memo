@@ -80,4 +80,7 @@ Competing packages use md5 for hashing. Md5 is a cryptographic hash, which means
 <h2> Checking for Mutations </h2>
 Our package al- lows users to set whether to store the underlying matrix and check whether it’s been mutated, and if so, update the hash. This equality check takes double the ram and may or may not be faster than hashing depending on how many cores the user has (since numpy automatically parallelizes array comparison) and what hash function is used.
 
+<h2> Random Correctness Check </h2>
+Further, checking that return values match memoized values is important as the user may inadvertently memoize some non-deterministic functions. For instance, some function in a library may call a non-deterministic algorithm in a language like C or C++, such as a Markov Chain Monte Carlo algorithm. In this case, testing for the substring rand in the function definition wouldn’t be sufficient to detect that it was a non-deterministic function. We allow the user to set the probability of doing an equality check for return values to between 0 and 1. A value of 1 can be used after memoizing a function with long code where the user isn’t sure whether it’s safe to memoize it, while a value close to 0 can be used to catch errors when working with a program over a long period.
+
 Developed by Alexander Moreno under the supervision of Professor Tucker Balch, Georgia Tech
