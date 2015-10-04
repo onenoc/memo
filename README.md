@@ -30,7 +30,8 @@ Then, above functions that you want to avoid recomputing on future runs, you dec
 def my_slow_function(arguments):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;slow code here<br>
   
-Also, in the file set_json.py, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library.<br>
+Also, in the file set_json.py, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library.  The details are as follows<br>
+
 data['bytes'] = 419430400*25 #this sets how much space to allocate for memoization<br>
 data['frequency'] = 0.0 #probability of check for memoization<br>
 data['verbose'] = False #print info<br>
