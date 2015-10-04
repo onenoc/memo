@@ -77,4 +77,7 @@ Pickle fails to serialize large dataframes, generally in excess of a gigabyte. F
 <h2> Fast Hashing </h2>
 Competing packages use md5 for hashing. Md5 is a cryptographic hash, which means that it is designed to make collisions difficult to find even for malicious input. Noncryptographic hashes are faster and make collisions unlikely only for non-malicious input. This means that it’s easy to generate a collision if one studies the hash function, but unlikely otherwise.  We give the user the option of using xxhash 64, a noncryptographic hash function that is much faster than md5 (https://github.com/Cyan4973/xxHash)
 
+<h2> Checking for Mutations </h2>
+Our package al- lows users to set whether to store the underlying matrix and check whether it’s been mutated, and if so, update the hash. This equality check takes double the ram and may or may not be faster than hashing depending on how many cores the user has (since numpy automatically parallelizes array comparison) and what hash function is used.
+
 Developed by Alexander Moreno under the supervision of Professor Tucker Balch, Georgia Tech
