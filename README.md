@@ -3,6 +3,12 @@ memo
 
 This is a memoizer class that you can use to decorate your functions so that they get cached to a file and run faster in future runs.
 
+<h1>Why Memoize?</h1>
+-Program Crashes: one of the functions called by the program crashes, and you need to recompute everything<br>
+-Unit tests also could benefit from avoiding recom- putation. Generally, they involve testing to see whether an output makes sense, and if the dependencies of a function remain unchanged, it need not be recomputed in order to answer this question.<br>
+<h2>How does it work?</h2>
+This library uses decorators, a type of function annotation, to memoize to disk. Memoization refers to “remembering” previously calculated function values, and then looking them up instead of recomputing them. Memoization to a file involves using the function name and arguments to generate a hash that serves as a filename, and then saving, or serializing, the “remembered” object to a pickle file. On subsequent calls to that function with those arguments, memoization reads, or deserializes from the file instead of recomputing.
+
 <h1>Installation</h1>
 To get started, run<br>
 git clone git@github.com:onenoc/memo.git<br>
@@ -25,9 +31,13 @@ def my_slow_function(arguments):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;slow code here<br>
   
 Also, in the file set_json.py, you can change settings for how many bytes the scratch folder uses (FIFO eviction), the frequency at which we check our function return values vs the cached values (a probability between 0 and 1), and the verbosity (True or False), or whether we even use the memoizer library.<br>
-Some notes:<br>
--this package detects changes to the function definition, and in that case will delete and not return cached values<br>
--it also detects any case of rand in the function definition, and will not cache in that case.  However, there are other ways to inject randomness, so the user should be somewhat careful
+data['bytes'] = 419430400*25 #this sets how much space to allocate for memoization<br>
+data['frequency'] = 0.0 #probability of check for memoization<br>
+data['verbose'] = False #print info<br>
+data['on'] = True #turn memoization on or off globally<br>
+data['hash_function'] = 'xxhash'#use xxhash or md5<br>
+data['check_arguments'] = True #check whether arguments are the same<br>
+data['check_mutation'] = False #check whether mutation occurs of values<br>
 
 <b>Examples (Thanks Jon O'Bryan):</b><br>
 import time<br>
