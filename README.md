@@ -1,6 +1,6 @@
 memo
 ====
-
+Note: some of this text was taken from the papers "Speeding up large-scale financial recomputation with memoization" and "Improving Financial Computation Speed With Full and Subproblem Memoization"
 This is a memoizer class that you can use to decorate your functions so that they get cached to a file and run faster in future runs.
 
 <h1>Why Memoize?</h1>
