@@ -86,7 +86,7 @@ This library allows for divide and conquer subproblem memoization.  This require
 @ls_dc_indices="": the list of divide conquer indices<br>
 @divide_conquer=0: this flag indicates whether or not to apply subproblem memoization<br>
 
-For an example, see dc_examples_sorting.py
+For an example, see dc_examples_sorting.py and for more info on the method, see "Improving Financial Computation Speed With Full and Subproblem Memoization"
 
 <h1> Features </h1>
 <h2> Deterministic vs Non-Deterministic Functions </h2>
