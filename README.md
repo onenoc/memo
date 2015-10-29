@@ -81,9 +81,9 @@ def fib(n):<br>
 This library allows for divide and conquer subproblem memoization.  This requires that your function take as input the following arguments:<br>
 @pd_data: this is your pandas dataframe<br>
 @ldt_dates: this is the list of datetime dates for the full dataframe<br>
-@l_dc_ret="": <br>
+@l_dc_ret="": divide conquer return<br>
 @ldt_dc_dates="": this is the list of datetimes for the solved subproblem<br>
-@ls_dc_indices="": <br>
+@ls_dc_indices="": the list of divide conquer indices<br>
 @divide_conquer=0: this flag indicates whether or not to apply subproblem memoization<br>
 
 For an example, see dc_examples_sorting.py
