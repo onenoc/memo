@@ -39,6 +39,11 @@ data['hash_function'] = 'xxhash'#use xxhash or md5<br>
 data['check_arguments'] = True #check whether arguments are the same<br>
 data['check_mutation'] = False #check whether mutation occurs of values<br>
 
+<h2> Flushing the Cache </h2>
+To flush the cache, cd into the memoizer folder and run
+
+python flush_cache.py
+
 <b>Examples (Thanks Jon O'Bryan):</b><br>
 import time<br>
 import sys<br>
