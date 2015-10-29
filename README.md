@@ -73,14 +73,16 @@ def fib(n):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;return fib(n - 2) + fib(n - 1)<br>
 
 <h2> Divide and Conquer Subproblem Memoization </h2>
-More details to come
-This library allows for divide and conquer subproblem memoization.  This requires that your function take as input the following arguments:
-@pd_data: this is your pandas dataframe
-@ldt_dates: this is the list of datetime dates for the full dataframe
-@l_dc_ret="": 
-@ldt_dc_dates="": this is the list of datetimes for the solved subproblem
-@ls_dc_indices="": 
-@divide_conquer=0: this flag indicates whether or not to apply subproblem memoization
+<b>More details to come</b>
+This library allows for divide and conquer subproblem memoization.  This requires that your function take as input the following arguments:<br>
+@pd_data: this is your pandas dataframe<br>
+@ldt_dates: this is the list of datetime dates for the full dataframe<br>
+@l_dc_ret="": <br>
+@ldt_dc_dates="": this is the list of datetimes for the solved subproblem<br>
+@ls_dc_indices="": <br>
+@divide_conquer=0: this flag indicates whether or not to apply subproblem memoization<br>
+
+For an example, see dc_examples_sorting.py
 
 <h1> Features </h1>
 <h2> Deterministic vs Non-Deterministic Functions </h2>
