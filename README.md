@@ -44,6 +44,10 @@ To flush the cache, cd into the memoizer folder and run
 
 python flush_cache.py
 
+To flush a single function from the cache, change the s_funcname string in line 7 of flush_function.py in the memoizer according to your function name, and run
+
+python flush_function.py
+
 <h2> Examples (Thanks Jon O'Bryan):</h2>
 import time<br>
 import sys<br>
