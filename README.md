@@ -44,7 +44,7 @@ To flush the cache, cd into the memoizer folder and run
 
 python flush_cache.py
 
-<b>Examples (Thanks Jon O'Bryan):</b><br>
+<h2> Examples (Thanks Jon O'Bryan):</h2>
 import time<br>
 import sys<br>
 from memoizer.DecoratorFactoryInstance import factory<br>
