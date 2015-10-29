@@ -72,6 +72,16 @@ def fib(n):<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return n<br>
 &nbsp;&nbsp;&nbsp;&nbsp;return fib(n - 2) + fib(n - 1)<br>
 
+<h2> Divide and Conquer Subproblem Memoization </h2>
+More details to come
+This library allows for divide and conquer subproblem memoization.  This requires that your function take as input the following arguments:
+@pd_data: this is your pandas dataframe
+@ldt_dates: this is the list of datetime dates for the full dataframe
+@l_dc_ret="": 
+@ldt_dc_dates="": this is the list of datetimes for the solved subproblem
+@ls_dc_indices="": 
+@divide_conquer=0: this flag indicates whether or not to apply subproblem memoization
+
 <h1> Features </h1>
 <h2> Deterministic vs Non-Deterministic Functions </h2>
 Deterministic functions, given some arguments, will always return the same value. Nondeterministic functions may not. Nondeterministic functions include functions that use randomization, read from a database or file that may change, or depend on the current time. When memoizing, we check the function definition as a string to make sure that it does not include rand or time as substrings, and that the function definition has not changed, but beyond that, taking care to avoid memoizing nondeterministic functions is left to the user. If we determine that it is a nondeterministic function based on rand or time, we do not memoize it and create a file to indicate not to memoize it in the future.
